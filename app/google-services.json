@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "17621947036",
+    "project_id": "cotam-d4ea5",
+    "storage_bucket": "cotam-d4ea5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:17621947036:android:5d1865284060739cc99359",
+        "android_client_info": {
+          "package_name": "com.example.cotam"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "17621947036-k375b3fd19i3l1ap4tcl93bamv49i3at.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.cotam",
+            "certificate_hash": "0c3d7e3437d3c3e87f044005179c556d3e1bc13c"
+          }
+        },
+        {
+          "client_id": "17621947036-69cs6v2n8d0veb2i82ou8ps1gosl53n0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDwu3DwGW1dlG-ED2ufPd8aPEuvEpASH7Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "17621947036-69cs6v2n8d0veb2i82ou8ps1gosl53n0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
