@@ -22,8 +22,8 @@ Firebase Firestore (for storing user and message data)
 
 Firebase Storage (for uploading images)
 
-Coil (for loading images asyncronous)
+Coil (for loading images asynchronous)
 
-Navigation (for navigating between composables)
+Navigation (for navigating between composable)
 
 Dagger Hilt (for dependency injection)
