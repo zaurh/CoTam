@@ -24,6 +24,6 @@ Firebase Storage (for uploading images)
 
 Coil (for loading images asynchronous)
 
-Navigation (for navigating between composable)
+Navigation (for navigating between composables)
 
 Dagger Hilt (for dependency injection)
