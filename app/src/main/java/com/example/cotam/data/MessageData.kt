@@ -16,10 +16,13 @@ data class MessageData(
     val getterUsername: String? = null,
     val getterUserId: String? = null,
     val getterUserImage: String? = null,
+    val getterToken: String? = null,
 
     val time: Timestamp? = Timestamp.now()
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
+        parcel.readString(),
+        parcel.readString(),
         parcel.readString(),
         parcel.readString(),
         parcel.readString(),
@@ -35,12 +38,14 @@ data class MessageData(
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(messageId)
         parcel.writeString(message)
+        parcel.writeString(imageUrl)
         parcel.writeString(senderUserId)
         parcel.writeString(senderUsername)
         parcel.writeString(senderUserImage)
         parcel.writeString(getterUsername)
         parcel.writeString(getterUserId)
         parcel.writeString(getterUserImage)
+        parcel.writeString(getterToken)
         parcel.writeParcelable(time, flags)
     }
 
@@ -57,5 +62,6 @@ data class MessageData(
             return arrayOfNulls(size)
         }
     }
+
 
 }

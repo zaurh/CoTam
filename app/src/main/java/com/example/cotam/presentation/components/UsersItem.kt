@@ -32,6 +32,7 @@ import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.example.cotam.R
 import com.example.cotam.common.NavParam
+import com.example.cotam.common.ZoomableImg
 import com.example.cotam.common.myTime
 import com.example.cotam.common.navigateTo
 import com.example.cotam.data.UserData
@@ -87,12 +88,7 @@ fun UsersItem(
                     dialogState = false
                 }) {
                     Box(modifier = Modifier.size(400.dp), Alignment.Center) {
-                        Image(
-                            modifier = Modifier.size(400.dp),
-                            contentScale = ContentScale.Crop,
-                            painter = rememberImagePainter(data = userData.image),
-                            contentDescription = ""
-                        )
+                        ZoomableImg(url = userData.image ?: "")
                     }
                 }
             }

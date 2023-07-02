@@ -1,9 +1,16 @@
 package com.example.cotam.presentation.screens
 
 import android.annotation.SuppressLint
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,16 +43,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
+import androidx.core.app.NotificationCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
+import com.example.cotam.MainActivity
 import com.example.cotam.R
+import com.example.cotam.common.Constants.TOPIC
+import com.example.cotam.common.Constants.messagingUsernameNotification
 import com.example.cotam.data.UserData
 import com.example.cotam.presentation.SharedViewModel
 import com.example.cotam.presentation.components.MessageItem
+import com.google.firebase.messaging.FirebaseMessagingService
+import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.launch
+import kotlin.random.Random
+
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,12 +72,14 @@ fun MessageScreen(
     navController: NavController
 ) {
 
+    messagingUsernameNotification = userData.username ?: ""
     val isImageLoading = viewModel.isImageLoading.value
     val scrollState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     val messages = viewModel.messageData.value
-    var message by remember { mutableStateOf("") }
+    var messageTf by remember { mutableStateOf("") }
     var allMessages by remember { mutableStateOf(false) }
+
 
 
     val launcher = rememberLauncherForActivityResult(
@@ -70,10 +88,11 @@ fun MessageScreen(
         uri?.let {
             viewModel.sendImage(
                 uri = it,
-                message = message,
+                message = messageTf,
                 getterUserId = userData.userId ?: "",
                 getterUsername = userData.username ?: "",
-                getterUserImage = userData.image ?: ""
+                getterUserImage = userData.image ?: "",
+                getterToken = userData.token ?: ""
             )
         }
     }
@@ -82,6 +101,7 @@ fun MessageScreen(
 
 
     SideEffect {
+
         allMessages = true
         scope.launch {
             scrollState.scrollToItem(messages.size)
@@ -164,8 +184,8 @@ fun MessageScreen(
                         unfocusedIndicatorColor = Color.Transparent,
                         focusedIndicatorColor = Color.Transparent
                     ),
-                    value = message,
-                    onValueChange = { message = it },
+                    value = messageTf,
+                    onValueChange = { messageTf = it },
                     trailingIcon = {
                         Row {
                             IconButton(onClick = {
@@ -177,19 +197,20 @@ fun MessageScreen(
                                 )
                             }
                             IconButton(onClick = {
-                                if (message.trim().isNotEmpty()) {
+                                if (messageTf.trim().isNotEmpty()) {
                                     scope.launch {
                                         if (messages.isNotEmpty()) {
                                             scrollState.scrollToItem(messages.size)
                                         }
                                     }
                                     viewModel.sendMessage(
-                                        message = message.trimStart().trimEnd(),
+                                        message = messageTf.trimStart().trimEnd(),
                                         getterUsername = userData.username ?: "",
                                         getterUserImage = userData.image ?: "",
-                                        getterUserId = userData.userId ?: ""
+                                        getterUserId = userData.userId ?: "",
+                                        getterToken = userData.token ?: "",
                                     )
-                                    message = ""
+                                    messageTf = ""
                                 }
                             }) {
                                 Icon(imageVector = Icons.Default.Send, contentDescription = "")

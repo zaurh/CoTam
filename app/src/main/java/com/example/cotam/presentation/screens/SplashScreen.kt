@@ -23,7 +23,7 @@ fun SplashScreen(
     navController: NavController
 ) {
     LaunchedEffect(key1 = Unit){
-        delay(1000)
+        delay(100)
         navController.navigate("auth"){
             popUpTo(0)
         }

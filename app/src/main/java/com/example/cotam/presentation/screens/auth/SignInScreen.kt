@@ -1,5 +1,6 @@
 package com.example.cotam.presentation.screens.auth
 
+import android.Manifest
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -57,7 +58,13 @@ import com.example.cotam.R
 import com.example.cotam.common.MyCheckSignedIn
 import com.example.cotam.common.MyProgressBar
 import com.example.cotam.presentation.SharedViewModel
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.messaging.ktx.messaging
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun SignInScreen(
     navController: NavController,
@@ -75,6 +82,18 @@ fun SignInScreen(
 
     var passwordVisibility by remember { mutableStateOf(false) }
     val context = LocalContext.current
+
+    val notificationPermissionState = rememberPermissionState(
+        permission = Manifest.permission.POST_NOTIFICATIONS
+    )
+
+    ///token
+    var token by remember { mutableStateOf("") }
+    val registrationToken = FirebaseMessaging.getInstance().token
+
+    registrationToken.addOnSuccessListener {
+        token = it
+    }
 
 
     Box(
@@ -183,9 +202,15 @@ fun SignInScreen(
                     passwordTfError = passwordTf.isEmpty()
 
                     if (!emailTfError && !passwordTfError) {
-                        sharedViewModel.signIn(emailTf, passwordTf, context)
+                        sharedViewModel.signIn(
+                            email = emailTf,
+                            password = passwordTf,
+                            context = context
+                        )
                     }
                     focus.clearFocus()
+                    notificationPermissionState.launchPermissionRequest()
+                    Firebase.messaging.subscribeToTopic("cotam")
                 }),
                 singleLine = true,
                 visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
@@ -261,9 +286,16 @@ fun SignInScreen(
                     passwordTfError = passwordTf.isEmpty()
 
                     if (!emailTfError && !passwordTfError) {
-                        sharedViewModel.signIn(emailTf, passwordTf, context)
+                        sharedViewModel.signIn(
+                            email = emailTf,
+                            password = passwordTf,
+                            context = context
+                        )
                     }
                     focus.clearFocus()
+
+                    notificationPermissionState.launchPermissionRequest()
+                    Firebase.messaging.subscribeToTopic("cotam")
                 }) {
                 Text(
                     text = "Sign in",

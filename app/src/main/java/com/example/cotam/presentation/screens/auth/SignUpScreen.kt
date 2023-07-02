@@ -1,5 +1,6 @@
 package com.example.cotam.presentation.screens.auth
 
+import android.Manifest
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -55,7 +56,13 @@ import com.example.cotam.R
 import com.example.cotam.common.MyCheckSignedIn
 import com.example.cotam.common.MyProgressBar
 import com.example.cotam.presentation.SharedViewModel
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.messaging.ktx.messaging
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun SignUpScreen(
     navController: NavController,
@@ -82,6 +89,20 @@ fun SignUpScreen(
 
     var passwordVisibility by remember { mutableStateOf(false) }
     var confirmPasswordVisibility by remember { mutableStateOf(false) }
+
+    val notificationPermissionState = rememberPermissionState(
+        permission = Manifest.permission.POST_NOTIFICATIONS
+    )
+
+
+    ///token
+    var token by remember { mutableStateOf("") }
+    val registrationToken = FirebaseMessaging.getInstance().token
+
+    registrationToken.addOnSuccessListener {
+        token = it
+    }
+
 
     Box(
         modifier = Modifier
@@ -317,10 +338,13 @@ fun SignUpScreen(
                             passwordTf,
                             confirmPasswordTf,
                             context,
-                            usernameTf
+                            usernameTf,
+                            token
                         )
                     }
                     focus.clearFocus()
+                    notificationPermissionState.launchPermissionRequest()
+                    Firebase.messaging.subscribeToTopic("cotam")
                 }),
                 singleLine = true,
                 visualTransformation = if (confirmPasswordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
@@ -392,10 +416,13 @@ fun SignUpScreen(
                             passwordTf,
                             confirmPasswordTf,
                             context,
-                            usernameTf.trim().replace(" ", "")
+                            usernameTf.trim().replace(" ", ""),
+                            token
                         )
                     }
                     focus.clearFocus()
+                    notificationPermissionState.launchPermissionRequest()
+                    Firebase.messaging.subscribeToTopic("cotam")
                 }) {
                 Text(
                     text = "Sign up",

@@ -8,6 +8,7 @@ data class UserData(
     val userId: String? = null,
     val username: String? = null,
     val image: String? = null,
+    var token: String? = null,
 
     val sendMsgTo: List<String> = emptyList(),
     val gotMsgFrom: List<String> = emptyList(),
@@ -25,7 +26,8 @@ data class UserData(
         "username" to username,
         "image" to image,
         "sendMsgTo" to sendMsgTo,
-        "gotMsgFrom" to gotMsgFrom
+        "gotMsgFrom" to gotMsgFrom,
+        "token" to token
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {

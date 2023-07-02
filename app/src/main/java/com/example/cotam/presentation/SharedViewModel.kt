@@ -7,8 +7,12 @@ import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.cotam.common.Constants.TOPIC
 import com.example.cotam.data.MessageData
+import com.example.cotam.data.NotificationData
+import com.example.cotam.data.PushNotification
 import com.example.cotam.data.UserData
+import com.example.cotam.data.repository.NotificationRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.toObject
@@ -24,7 +28,8 @@ import javax.inject.Inject
 class SharedViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
-    private val storage: FirebaseStorage
+    private val storage: FirebaseStorage,
+    private val repository: NotificationRepository
 ) : ViewModel() {
 
     val messageData = mutableStateOf<List<MessageData>>(emptyList())
@@ -55,7 +60,8 @@ class SharedViewModel @Inject constructor(
         password: String,
         confirmPassword: String,
         context: Context,
-        username: String
+        username: String,
+        token: String
     ) {
         isLoading.value = true
         if (!checkValidEmail(email)) {
@@ -74,7 +80,7 @@ class SharedViewModel @Inject constructor(
                 .addOnSuccessListener {
                     isLoading.value = false
                     isSignedIn.value = true
-                    addUser(username)
+                    addUser(username, token)
                 }
                 .addOnFailureListener {
                     isLoading.value = false
@@ -84,6 +90,7 @@ class SharedViewModel @Inject constructor(
     }
 
     fun signIn(email: String, password: String, context: Context) {
+
         isLoading.value = true
         auth.signInWithEmailAndPassword(email, password)
             .addOnSuccessListener {
@@ -91,7 +98,6 @@ class SharedViewModel @Inject constructor(
                     isLoading.value = false
                     isSignedIn.value = true
                 }
-
             }
             .addOnFailureListener {
                 isLoading.value = false
@@ -144,11 +150,12 @@ class SharedViewModel @Inject constructor(
 
     //***********************    Firebase Firestore   **********************
 
-    private fun addUser(username: String) {
+    private fun addUser(username: String, token: String) {
         val userId = auth.currentUser?.uid
         val userdata = UserData(
             username = username,
-            userId = userId
+            userId = userId,
+            token = token
         )
         userId?.let { uid ->
             firestore.collection("user").document(uid).set(userdata)
@@ -186,14 +193,16 @@ class SharedViewModel @Inject constructor(
 
     fun updateUser(
         username: String? = null,
-        imageUrl: String? = null
+        imageUrl: String? = null,
+        token: String? = null
     ) {
         val currentUserId = auth.currentUser?.uid
         val updateUserData = UserData(
             username = username ?: userData.value?.username,
             image = imageUrl ?: userData.value?.image,
             gotMsgFrom = userData.value?.gotMsgFrom ?: listOf(),
-            sendMsgTo = userData.value?.sendMsgTo ?: listOf()
+            sendMsgTo = userData.value?.sendMsgTo ?: listOf(),
+            token = token ?: userData.value?.token
         )
         if (currentUserId != null) {
             firestore.collection("user").document(currentUserId).update(updateUserData.toMap())
@@ -222,7 +231,6 @@ class SharedViewModel @Inject constructor(
                     username = user.username,
                     imageUrl = it.toString(),
                 )
-
             }
         }
     }
@@ -232,7 +240,8 @@ class SharedViewModel @Inject constructor(
         message: String,
         getterUserId: String,
         getterUsername: String,
-        getterUserImage: String
+        getterUserImage: String,
+        getterToken: String
     ) {
         val user = userData.value
         user?.let {
@@ -242,7 +251,8 @@ class SharedViewModel @Inject constructor(
                     message = message,
                     getterUserId = getterUserId,
                     getterUserImage = getterUserImage,
-                    getterUsername = getterUsername
+                    getterUsername = getterUsername,
+                    getterToken = getterToken
                 )
             }
         }
@@ -275,15 +285,27 @@ class SharedViewModel @Inject constructor(
         message: String,
         getterUsername: String,
         getterUserImage: String,
-        getterUserId: String
+        getterUserId: String,
+        getterToken: String
     ) {
+
         sendPrivateMessage(
             imageUrl = imageUrl,
             message = message,
             getterUsername,
             getterUserImage,
             getterUserId,
+            getterToken
         )
+        val notificationData = NotificationData(
+            title = userData.value?.username ?: "",
+            text = message
+        )
+
+        val pushNotification = PushNotification(data = notificationData, to = getterToken)
+        viewModelScope.launch {
+            repository.sendNotification(pushNotification)
+        }
     }
 
     private fun sendPrivateMessage(
@@ -292,6 +314,7 @@ class SharedViewModel @Inject constructor(
         getterUsername: String,
         getterUserImage: String,
         getterUserId: String,
+        getterToken: String
     ) {
         isLoading.value = true
         val userId = auth.currentUser?.uid
@@ -307,9 +330,11 @@ class SharedViewModel @Inject constructor(
             getterUsername = getterUsername,
             getterUserImage = getterUserImage,
             getterUserId = getterUserId,
+            getterToken = getterToken
         )
 
         firestore.collection("message").document(randomId).set(messageData).addOnSuccessListener {
+
             isLoading.value = false
         }
 
@@ -440,7 +465,9 @@ class SharedViewModel @Inject constructor(
     }
 
 
+
 }
+
 
 
 

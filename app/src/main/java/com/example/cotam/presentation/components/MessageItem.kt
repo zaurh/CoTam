@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,10 +30,11 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberImagePainter
 import com.example.cotam.R
-import com.example.cotam.common.ZoomableImage
+import com.example.cotam.common.ZoomableImg
 import com.example.cotam.common.myTime
 import com.example.cotam.data.MessageData
 import com.example.cotam.presentation.SharedViewModel
@@ -78,11 +80,17 @@ fun MessageItem(
         ) {
             if (dialogState) {
 
-                Dialog(onDismissRequest = {
-                    dialogState = false
-                }) {
-                    ZoomableImage(url = messageData.imageUrl ?: "")
+                Surface(modifier = Modifier.fillMaxSize()) {
+                    Dialog(
+                    properties = DialogProperties(usePlatformDefaultWidth = false),
+
+                    onDismissRequest = {
+                            dialogState = false
+                        }) {
+                        ZoomableImg(url = messageData.imageUrl ?: "")
+                    }
                 }
+
 
             }
             if (messageData.imageUrl?.isNotEmpty() == true) {
