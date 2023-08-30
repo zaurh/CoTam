@@ -4,10 +4,11 @@ import android.content.Context
 import android.net.Uri
 import android.util.Patterns
 import android.widget.Toast
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.cotam.common.Constants.TOPIC
 import com.example.cotam.data.MessageData
 import com.example.cotam.data.NotificationData
 import com.example.cotam.data.PushNotification
@@ -20,6 +21,9 @@ import com.google.firebase.firestore.ktx.toObjects
 import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
@@ -32,7 +36,9 @@ class SharedViewModel @Inject constructor(
     private val repository: NotificationRepository
 ) : ViewModel() {
 
-    val messageData = mutableStateOf<List<MessageData>>(emptyList())
+    val messagesData = mutableStateOf<List<MessageData>>(emptyList())
+    val messageData = mutableStateOf<MessageData?>(null)
+
     val allMessagesAsync = mutableStateOf<List<MessageData>>(emptyList())
     val allMessagesSync = mutableStateOf<List<MessageData>>(emptyList())
     val userData = mutableStateOf<UserData?>(null)
@@ -40,6 +46,15 @@ class SharedViewModel @Inject constructor(
     val isLoading = mutableStateOf(false)
     val isImageLoading = mutableStateOf(false)
     val isSignedIn = mutableStateOf(false)
+
+    var replyingPerson = mutableStateOf("")
+    var replyingMessage = mutableStateOf("")
+    var replyingImage = mutableStateOf("")
+    var replyingVideo = mutableStateOf("")
+    var isReplyingState = mutableStateOf(false)
+
+    val selectedMessages = mutableStateListOf<MessageData>()
+
 
     private var isSearchStarting = true
     private var initialUsers = listOf<UserData>()
@@ -178,6 +193,16 @@ class SharedViewModel @Inject constructor(
         }
     }
 
+    private fun getMessageData(messageId: String) {
+        val currentUserId = auth.currentUser?.uid
+        if (currentUserId != null) {
+            firestore.collection("message").document(messageId).get()
+                .addOnSuccessListener {
+                    messageData.value = it.toObject<MessageData>()
+                }
+        }
+    }
+
     private fun getAllUsers() {
         val currentUserId = auth.currentUser?.uid
         if (currentUserId != null) {
@@ -258,6 +283,29 @@ class SharedViewModel @Inject constructor(
         }
     }
 
+    fun sendVideo(
+        uri: Uri,
+        message: String,
+        getterUserId: String,
+        getterUsername: String,
+        getterUserImage: String,
+        getterToken: String
+    ) {
+        val user = userData.value
+        user?.let {
+            uploadingVideo(uri) {
+                sendMessage(
+                    videoUrl = it.toString(),
+                    message = message,
+                    getterUserId = getterUserId,
+                    getterUserImage = getterUserImage,
+                    getterUsername = getterUsername,
+                    getterToken = getterToken
+                )
+            }
+        }
+    }
+
     private fun uploadingImage(uri: Uri, onSuccess: (Uri) -> Unit) {
         isImageLoading.value = true
 
@@ -277,11 +325,34 @@ class SharedViewModel @Inject constructor(
             }
     }
 
+    private fun uploadingVideo(uri: Uri, onSuccess: (Uri) -> Unit) {
+        isImageLoading.value = true
+
+        val storageRef = storage.reference
+        val uuid = UUID.randomUUID()
+        val videoRef = storageRef.child("video/$uuid")
+        val uploadTask = videoRef.putFile(uri)
+
+        uploadTask
+            .addOnSuccessListener {
+                val result = it.metadata?.reference?.downloadUrl
+                result?.addOnSuccessListener(onSuccess)
+                isImageLoading.value = false
+            }
+            .addOnFailureListener {
+                isImageLoading.value = false
+            }
+    }
+
 
     ////MESSENGER
 
     fun sendMessage(
-        imageUrl: String? = null,
+        imageUrl: String = "",
+        videoUrl: String = "",
+        replyMessage: String? = null,
+        replyImage: String? = null,
+        replyVideo: String? = null,
         message: String,
         getterUsername: String,
         getterUserImage: String,
@@ -291,11 +362,15 @@ class SharedViewModel @Inject constructor(
 
         sendPrivateMessage(
             imageUrl = imageUrl,
+            videoUrl = videoUrl,
             message = message,
             getterUsername,
             getterUserImage,
             getterUserId,
-            getterToken
+            getterToken,
+            replyMessage = replyMessage,
+            replyImage = replyImage,
+            replyVideo = replyVideo
         )
         val notificationData = NotificationData(
             title = userData.value?.username ?: "",
@@ -309,19 +384,25 @@ class SharedViewModel @Inject constructor(
     }
 
     private fun sendPrivateMessage(
-        imageUrl: String? = null,
+        imageUrl: String = "",
+        videoUrl: String = "",
         message: String,
         getterUsername: String,
         getterUserImage: String,
         getterUserId: String,
-        getterToken: String
+        getterToken: String,
+        replyMessage: String? = null,
+        replyImage: String? = null,
+        replyVideo: String? = null
     ) {
         isLoading.value = true
         val userId = auth.currentUser?.uid
         val username = userData.value?.username
         val randomId = UUID.randomUUID().toString()
+
         val messageData = MessageData(
             imageUrl = imageUrl,
+            videoUrl = videoUrl,
             message = message,
             messageId = randomId,
             senderUserId = userId,
@@ -330,14 +411,36 @@ class SharedViewModel @Inject constructor(
             getterUsername = getterUsername,
             getterUserImage = getterUserImage,
             getterUserId = getterUserId,
-            getterToken = getterToken
+            getterToken = getterToken,
+            replyMessage = replyMessage,
+            replyImage = replyImage,
+            replyVideo = replyVideo
         )
 
         firestore.collection("message").document(randomId).set(messageData).addOnSuccessListener {
-
             isLoading.value = false
         }
 
+        firestore.collection("message")
+            .whereEqualTo("messageId", randomId)
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    val visibilityList =
+                        document.get("visibility") as? ArrayList<String> ?: arrayListOf()
+
+                    if (visibilityList.contains(userId)) {
+                        visibilityList.remove(userId!!)
+                        visibilityList.add(userId)
+                        visibilityList.add(getterUserId)
+                    } else {
+                        visibilityList.add(userId!!)
+                        visibilityList.add(getterUserId)
+                    }
+
+                    document.reference.update("visibility", visibilityList)
+                }
+            }
 
         firestore.collection("user")
             .whereEqualTo("userId", getterUserId)
@@ -390,13 +493,25 @@ class SharedViewModel @Inject constructor(
             firestore.collection("message")
                 .whereIn("senderUserId", listOf(userId, getterUserId))
                 .whereIn("getterUserId", listOf(userId, getterUserId))
+                .whereArrayContains("visibility", currentUserId)
+
                 .addSnapshotListener { value, _ ->
                     value?.let { it ->
-                        messageData.value = it.toObjects<MessageData>().sortedBy { it.time }
+                        messagesData.value = it.toObjects<MessageData>().sortedBy { it.time }
                     }
                 }
         }
     }
+
+//    private fun getMessageData() {
+//        val currentUserId = auth.currentUser?.uid
+//        if (currentUserId != null) {
+//            firestore.collection("user").
+//                .addOnSuccessListener {
+//                    userData.value = it.toObject<UserData>()
+//                }
+//        }
+//    }
 
     fun getMessagesAsync() {
         val currentUserId = auth.currentUser?.uid
@@ -423,11 +538,73 @@ class SharedViewModel @Inject constructor(
         }
     }
 
-    fun deleteMessage(message: String) {
+    fun deleteMessageFromDatabase(messageId: String) {
+        firestore.collection("message").document(messageId).delete()
+    }
+
+    fun deleteMessage(messageId: String, userId: String) {
+
+        firestore.collection("message")
+            .whereEqualTo("messageId", messageId)
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    val visibilityList = arrayListOf<String>()
+
+                    messageData.value?.visibility?.let {
+                        visibilityList.addAll(it)
+                    }
+
+                    if (visibilityList.contains(userId)) {
+                        visibilityList.remove(userId)
+                        visibilityList.add(userId)
+                    } else {
+                        visibilityList.add(userId)
+                    }
+                    document.reference.update("visibility", visibilityList)
+                }
+            }
+    }
+
+
+    fun emoteMessage(messageId: String, myEmoji: String) {
         val currentUserId = auth.currentUser?.uid
 
         if (currentUserId != null) {
-            firestore.collection("message").document(message).delete()
+            firestore.collection("message")
+                .whereEqualTo("messageId", messageId)
+                .get()
+                .addOnSuccessListener { documents ->
+                    for (document in documents) {
+                        document.reference.update("messageIsEmoted", myEmoji)
+                    }
+                }
+        }
+    }
+
+    fun deleteChat(userId: String) {
+        val currentUserId = auth.currentUser?.uid
+
+        if (currentUserId != null) {
+            firestore.collection("user").whereEqualTo("userId", currentUserId).get()
+                .addOnSuccessListener { documents ->
+                    for (document in documents) {
+                        val gotMessagesFrom =
+                            document.get("gotMsgFrom") as? ArrayList<String> ?: arrayListOf()
+
+                        gotMessagesFrom.remove(userId)
+
+                        document.reference.update("gotMsgFrom", gotMessagesFrom)
+                    }
+                    for (document in documents) {
+                        val sendMessagesTo =
+                            document.get("sendMsgTo") as? ArrayList<String> ?: arrayListOf()
+
+                        sendMessagesTo.remove(userId)
+
+                        document.reference.update("sendMsgTo", sendMessagesTo)
+                    }
+                }
         }
     }
 
@@ -463,7 +640,6 @@ class SharedViewModel @Inject constructor(
         usersData.value = initialUsers
         isSearchStarting = true
     }
-
 
 
 }

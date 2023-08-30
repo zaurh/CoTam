@@ -122,8 +122,11 @@ dependencies {
     //Zooming
     implementation("me.saket.telephoto:zoomable:0.4.0")
 
-//    //SwipeAction
-//    implementation "me.saket.swipe:swipe:1.1.1"
+    //SwipeAction
+    implementation "me.saket.swipe:swipe:1.2.0"
+
+    //exo player
+    implementation 'com.google.android.exoplayer:exoplayer:2.18.0'
 
 
 

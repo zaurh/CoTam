@@ -138,7 +138,7 @@ fun SettingsScreen(
                 Button(
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = colorResource(id = R.color.green)
+                        containerColor = colorResource(id = R.color.blue)
                     ),
                     onClick = {
                         focus.clearFocus()

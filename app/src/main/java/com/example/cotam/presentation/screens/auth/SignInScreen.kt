@@ -75,9 +75,9 @@ fun SignInScreen(
 
     val isLoading = sharedViewModel.isLoading.value
     val focus = LocalFocusManager.current
-    var emailTf by remember { mutableStateOf("") }
+    var emailTf by remember { mutableStateOf("zaur@gmail.com") }
     var emailTfError by remember { mutableStateOf(false) }
-    var passwordTf by remember { mutableStateOf("") }
+    var passwordTf by remember { mutableStateOf("zaur1234") }
     var passwordTfError by remember { mutableStateOf(false) }
 
     var passwordVisibility by remember { mutableStateOf(false) }

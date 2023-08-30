@@ -7,7 +7,12 @@ import com.google.firebase.Timestamp
 data class MessageData(
     val messageId: String? = null,
     var message: String? = null,
+    var messageIsEmoted: String? = null,
+    var replyMessage: String? = null,
+    var replyImage: String? = null,
+    var replyVideo: String? = null,
     var imageUrl: String? = null,
+    var videoUrl: String? = null,
 
     val senderUserId: String? = null,
     val senderUsername: String? = null,
@@ -18,8 +23,13 @@ data class MessageData(
     val getterUserImage: String? = null,
     val getterToken: String? = null,
 
-    val time: Timestamp? = Timestamp.now()
+    val time: Timestamp? = Timestamp.now(),
+
+    val visibility: List<String> = emptyList()
+
 ) : Parcelable {
+
+
     constructor(parcel: Parcel) : this(
         parcel.readString(),
         parcel.readString(),
@@ -31,14 +41,24 @@ data class MessageData(
         parcel.readString(),
         parcel.readString(),
         parcel.readString(),
-        parcel.readParcelable(Timestamp::class.java.classLoader)
+        parcel.readString(),
+        parcel.readString(),
+        parcel.readString(),
+        parcel.readString(),
+        parcel.readString(),
+        parcel.readParcelable(Timestamp::class.java.classLoader),
     ) {
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(messageId)
         parcel.writeString(message)
+        parcel.writeValue(messageIsEmoted)
+        parcel.writeString(replyMessage)
+        parcel.writeString(replyImage)
+        parcel.writeString(replyVideo)
         parcel.writeString(imageUrl)
+        parcel.writeString(videoUrl)
         parcel.writeString(senderUserId)
         parcel.writeString(senderUsername)
         parcel.writeString(senderUserImage)
@@ -47,6 +67,7 @@ data class MessageData(
         parcel.writeString(getterUserImage)
         parcel.writeString(getterToken)
         parcel.writeParcelable(time, flags)
+        parcel.writeStringList(visibility)
     }
 
     override fun describeContents(): Int {

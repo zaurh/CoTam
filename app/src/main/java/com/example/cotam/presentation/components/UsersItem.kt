@@ -1,8 +1,10 @@
 package com.example.cotam.presentation.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +34,7 @@ import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.example.cotam.R
 import com.example.cotam.common.NavParam
+import com.example.cotam.common.VideoPlayer
 import com.example.cotam.common.ZoomableImg
 import com.example.cotam.common.myTime
 import com.example.cotam.common.navigateTo
@@ -39,6 +42,7 @@ import com.example.cotam.data.UserData
 import com.example.cotam.presentation.SharedViewModel
 import com.google.firebase.auth.FirebaseAuth
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun UsersItem(
     userData: UserData,
@@ -76,13 +80,20 @@ fun UsersItem(
         viewModel.getMessagesAsync()
 
 
-        Row(modifier = Modifier
-            .clickable {
-                navigateTo(navController, "message", NavParam("userData", userData))
-                viewModel.getMessagesSync()
-            }
-            .fillMaxWidth()
-            .padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier
+                .combinedClickable(
+                    onClick = {
+                        navigateTo(navController, "message", NavParam("userData", userData))
+                        viewModel.getMessagesSync()
+                    },
+                    onLongClick = {
+//                        viewModel.deleteChat(userData.userId ?: "")
+                    }
+                )
+                .fillMaxWidth()
+                .padding(10.dp), verticalAlignment = Alignment.CenterVertically
+        ) {
             if (dialogState) {
                 Dialog(onDismissRequest = {
                     dialogState = false
@@ -137,6 +148,7 @@ fun UsersItem(
                     ) {
                         var lastMsg = ""
                         var lastImg = ""
+                        var lastVideo = ""
                         var lastMsgTime = ""
 
                         for (i in messages) {
@@ -145,6 +157,7 @@ fun UsersItem(
                             ) {
                                 lastMsg = i.message.toString()
                                 lastImg = i.imageUrl.toString()
+                                lastVideo = i.videoUrl.toString()
                                 lastMsgTime = myTime(i.time!!)
                             }
                         }
@@ -165,6 +178,15 @@ fun UsersItem(
                                 )
                                 Spacer(modifier = Modifier.size(5.dp))
                                 Text(text = "Photo", color = Color.Gray)
+                            }
+                        }
+                        else if (lastVideo.isNotEmpty()) {
+                            Row {
+                                Box(modifier = Modifier.size(24.dp)){
+                                    VideoPlayer(url = lastVideo, autoPlay = false)
+                                }
+                                Spacer(modifier = Modifier.size(5.dp))
+                                Text(text = "Video", color = Color.Gray)
                             }
                         }
 

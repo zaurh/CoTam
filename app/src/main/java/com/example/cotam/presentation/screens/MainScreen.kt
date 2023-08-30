@@ -51,9 +51,7 @@ fun MainScreen(
 
     val swipeRefreshState = rememberSwipeRefreshState(false)
     val users = viewModel.usersData.value
-    val token = remember {
-        mutableStateOf("a")
-    }
+    val token = remember { mutableStateOf("a") }
     val registrationToken = FirebaseMessaging.getInstance().token
 
     registrationToken.addOnSuccessListener {
@@ -67,10 +65,10 @@ fun MainScreen(
         user?.let {
             registrationToken.addOnSuccessListener {
                 viewModel.updateUser(
-                    token = it
+                    token = it,
+                    username = user.username
                 )
             }
-
         }
     }
 
@@ -81,8 +79,9 @@ fun MainScreen(
                     Text(text = "Co Tam?")
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    Color.Transparent
-                ),
+                    colorResource(id = R.color.blue)
+                )
+                ,
                 actions = {
                     IconButton(onClick = {
                         navController.navigate("people")
@@ -128,21 +127,21 @@ fun MainScreen(
                         }
                     }
 
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .weight(2f)
-                    ) {
 
-                        FloatingActionButton(
-                            containerColor = colorResource(id = R.color.green),
-                            contentColor = Color.White,
-                            modifier = Modifier
-                                .padding(30.dp)
-                                .align(Alignment.BottomEnd),
-                            onClick = { navController.navigate("people") }) {
-                            Icon(imageVector = Icons.Default.Add, contentDescription = "")
-                        }
+                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) {
+
+                    FloatingActionButton(
+                        containerColor = colorResource(id = R.color.blue),
+                        contentColor = Color.White,
+                        modifier = Modifier
+                            .padding(30.dp)
+                            .align(Alignment.BottomEnd),
+                        onClick = { navController.navigate("people") }) {
+                        Icon(imageVector = Icons.Default.Add, contentDescription = "")
                     }
                 }
 

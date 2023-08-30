@@ -17,4 +17,5 @@
     <color name="gray">#4D656565</color>
     <color name="topBar">#ff7976</color>
     <color name="background">#37353C</color>
+    <color name="videoPlayer">#4D000000</color>
 </resources>

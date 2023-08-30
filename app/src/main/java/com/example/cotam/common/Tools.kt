@@ -12,21 +12,30 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.example.cotam.R
 import com.example.cotam.presentation.SharedViewModel
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.SimpleExoPlayer
+import com.google.android.exoplayer2.ui.PlayerView
 import com.google.firebase.Timestamp
 import me.saket.telephoto.zoomable.ZoomableContentLocation
 import me.saket.telephoto.zoomable.rememberZoomableState
 import me.saket.telephoto.zoomable.zoomable
+import okhttp3.internal.wait
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -109,5 +118,25 @@ fun ZoomableImg(url:String){
 
 }
 
+
+@Composable
+fun VideoPlayer(url: String, autoPlay: Boolean) {
+    val context = LocalContext.current
+    val player = SimpleExoPlayer.Builder(context).build()
+    val playerView = PlayerView(context)
+    val mediaItem = MediaItem.fromUri(url)
+
+    player.setMediaItem(mediaItem)
+    playerView.player = player
+    playerView.useController = autoPlay
+    LaunchedEffect(player){
+        player.prepare()
+        player.playWhenReady = autoPlay
+    }
+    
+    AndroidView(factory = {
+        playerView
+    })
+}
 
 
