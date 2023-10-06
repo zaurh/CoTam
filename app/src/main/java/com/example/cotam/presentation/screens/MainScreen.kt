@@ -93,7 +93,6 @@ fun MainScreen(
                     }) {
                         Icon(imageVector = Icons.Default.Settings, contentDescription = "")
                     }
-
                 }
             )
         },
