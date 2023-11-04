@@ -1,10 +1,7 @@
 package com.example.cotam.presentation.components
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,41 +28,31 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
-import com.example.cotam.R
 import com.example.cotam.common.NavParam
 import com.example.cotam.common.VideoPlayer
 import com.example.cotam.common.ZoomableImg
 import com.example.cotam.common.myTime
 import com.example.cotam.common.navigateTo
 import com.example.cotam.data.UserData
-import com.example.cotam.presentation.SharedViewModel
+import com.example.cotam.presentation.screens.viewmodel.MessageViewModel
+import com.example.cotam.presentation.screens.viewmodel.UserViewModel
 import com.google.firebase.auth.FirebaseAuth
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun UsersItem(
     userData: UserData,
     auth: FirebaseAuth = FirebaseAuth.getInstance(),
     navController: NavController,
-    viewModel: SharedViewModel = hiltViewModel(),
+    userViewModel: UserViewModel = hiltViewModel(),
+    messageViewModel: MessageViewModel = hiltViewModel(),
     showAllUsers: Boolean,
-    showLastMessage: Boolean,
-    showNewMessage: Boolean
+    showLastMessage: Boolean
 ) {
 
     var dialogState by remember { mutableStateOf(false) }
     val showListState = remember { mutableStateOf(showAllUsers) }
-    val currentUser = viewModel.userData.value
-    val messages = viewModel.allMessagesAsync.value
-    val messagesSync = viewModel.allMessagesSync.value
-
-    var totalMessage by remember { mutableStateOf(0) }
-    totalMessage = messages.count { it.senderUserId == userData.userId }
-
-    var totalMessageSync by remember { mutableStateOf(0) }
-    totalMessageSync = messagesSync.count { it.senderUserId == userData.userId }
-
-
+    val currentUser = userViewModel.userData.value
+    val messages = messageViewModel.allMessages
 
     if (userData.userId == auth.currentUser?.uid) {
         return
@@ -77,20 +63,11 @@ fun UsersItem(
     }
 
     if (showListState.value) {
-        viewModel.getMessagesAsync()
-
-
         Row(
             modifier = Modifier
-                .combinedClickable(
-                    onClick = {
-                        navigateTo(navController, "message", NavParam("userData", userData))
-                        viewModel.getMessagesSync()
-                    },
-                    onLongClick = {
-//                        viewModel.deleteChat(userData.userId ?: "")
-                    }
-                )
+                .clickable {
+                    navigateTo(navController, "message", NavParam("userData", userData))
+                }
                 .fillMaxWidth()
                 .padding(10.dp), verticalAlignment = Alignment.CenterVertically
         ) {
@@ -122,23 +99,7 @@ fun UsersItem(
 
             Column {
 
-                Row {
-                    Text(text = userData.username ?: "", fontSize = 18.sp)
-                    if (showNewMessage) {
-                        Spacer(modifier = Modifier.size(10.dp))
-                        if (totalMessage > totalMessageSync) {
-                            Text(
-                                text = (totalMessage - totalMessageSync).toString(),
-                                color = Color.White,
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .background(colorResource(id = R.color.green))
-                                    .padding(start = 5.dp, end = 5.dp)
-                            )
-                        }
-                    }
-
-                }
+                Text(text = userData.username ?: "", fontSize = 18.sp)
 
                 if (showLastMessage) {
                     Row(
@@ -151,13 +112,13 @@ fun UsersItem(
                         var lastVideo = ""
                         var lastMsgTime = ""
 
-                        for (i in messages) {
-                            if (i.getterUserId == userData.userId && i.senderUserId == auth.currentUser?.uid ||
-                                i.senderUserId == userData.userId && i.getterUserId == auth.currentUser?.uid
+                        for (i in messages.value) {
+                            if (i.getterId == userData.userId && i.senderId == auth.currentUser?.uid ||
+                                i.senderId == userData.userId && i.getterId == auth.currentUser?.uid
                             ) {
-                                lastMsg = i.message.toString()
-                                lastImg = i.imageUrl.toString()
-                                lastVideo = i.videoUrl.toString()
+                                lastMsg = i.message ?: ""
+                                lastImg = i.imageUrl ?: ""
+                                lastVideo = i.videoUrl ?: ""
                                 lastMsgTime = myTime(i.time!!)
                             }
                         }

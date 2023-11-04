@@ -2,8 +2,8 @@ package com.example.cotam.presentation.screens
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.util.Log
 import android.webkit.URLUtil
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
@@ -25,9 +25,7 @@ import androidx.compose.material.*
 import androidx.compose.material3.Button
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Reply
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.twotone.AttachFile
@@ -58,7 +56,6 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -70,9 +67,11 @@ import com.example.cotam.R
 import com.example.cotam.common.Constants.messagingUsernameNotification
 import com.example.cotam.common.VideoPlayer
 import com.example.cotam.common.ZoomableImg
+import com.example.cotam.data.MessageData
 import com.example.cotam.data.UserData
-import com.example.cotam.presentation.SharedViewModel
 import com.example.cotam.presentation.components.MessageItem
+import com.example.cotam.presentation.screens.viewmodel.MessageViewModel
+import com.example.cotam.presentation.screens.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 
 
@@ -80,24 +79,25 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MessageScreen(
-    viewModel: SharedViewModel = hiltViewModel(),
     userData: UserData,
-    navController: NavController
+    navController: NavController,
+    messageViewModel: MessageViewModel = hiltViewModel(),
+    userViewModel: UserViewModel = hiltViewModel()
 ) {
 
     messagingUsernameNotification = userData.username ?: ""
-    val isImageLoading = viewModel.isImageLoading.value
+    val isMediaLoading = messageViewModel.isMediaLoading.value
     val scrollState = rememberLazyListState()
     val scope = rememberCoroutineScope()
-    val messages = viewModel.messagesData.value
+    val messages = messageViewModel.privateMessagesData.value
     var messageTf by remember { mutableStateOf("") }
-    var replyMessage = viewModel.replyingMessage.value
-    var replyImage = viewModel.replyingImage.value
-    var replyVideo = viewModel.replyingVideo.value
+    var replyMessage = messageViewModel.replyingMessage.value
+    var replyImage = messageViewModel.replyingImage.value
+    var replyVideo = messageViewModel.replyingVideo.value
+    val senderUserData = userViewModel.userData.value
 
 
-    var allMessages by remember { mutableStateOf(false) }
-    val selectedMessages = viewModel.selectedMessages
+    val selectedMessages = messageViewModel.selectedMessages
 
     val focus = FocusRequester()
     val focusManager = LocalFocusManager.current
@@ -105,53 +105,44 @@ fun MessageScreen(
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
 
     val context = LocalContext.current
-
+    val contentResolver = context.contentResolver
+    
 
     var expanded by remember { mutableStateOf(false) }
     var deleteAlert by remember { mutableStateOf(false) }
 
 
-    val launcherImage = rememberLauncherForActivityResult(
+    val launcherMedia = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            viewModel.sendImage(
+            messageViewModel.sendMedia(
                 uri = it,
-                message = messageTf,
-                getterUserId = userData.userId ?: "",
-                getterUsername = userData.username ?: "",
-                getterUserImage = userData.image ?: "",
-                getterToken = userData.token ?: ""
-            )
-        }
-    }
-
-    val launcherVideo = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let {
-            viewModel.sendVideo(
-                uri = it,
-                message = messageTf,
-                getterUserId = userData.userId ?: "",
-                getterUsername = userData.username ?: "",
-                getterUserImage = userData.image ?: "",
-                getterToken = userData.token ?: ""
+                messageData = MessageData(
+                    senderId = senderUserData?.userId,
+                    getterId = userData.userId,
+                    visibility = mutableListOf(
+                        senderUserData?.userId ?: "",
+                        userData.userId ?: ""
+                    )
+                ),
+                contentResolver
             )
         }
     }
 
 
     LaunchedEffect(key1 = true) {
-        allMessages = true
         scope.launch {
             scrollState.scrollToItem(messages.size + 99)
         }
     }
 
-    if (allMessages) {
-
-        viewModel.getPrivateMessages(userData.userId ?: "")
+    senderUserData?.let {
+        messageViewModel.getPrivateMessages(
+            senderId = it.userId ?: "",
+            getterId = userData.userId ?: ""
+        )
     }
 
 
@@ -183,14 +174,16 @@ fun MessageScreen(
                 Spacer(modifier = Modifier.size(20.dp))
                 Button(
                     onClick = {
-                        for (i in selectedMessages) {
-                            if (i.visibility.size == 1) {
-                                viewModel.deleteMessageFromDatabase(i.messageId ?: "")
+                        for (messageData in selectedMessages) {
+                            if (messageData.visibility.size == 1) {
+                                messageViewModel.deleteMessageFromDatabase(
+                                    messageData.messageId ?: ""
+                                )
                             } else {
-                                if (i.getterUserId == userData.userId) {
-                                    viewModel.deleteMessage(i.messageId ?: "", i.getterUserId ?: "")
+                                if (messageData.senderId == senderUserData?.userId) {
+                                    messageViewModel.deleteMessage(messageData)
                                 } else {
-                                    viewModel.deleteMessage(i.messageId ?: "", i.senderUserId ?: "")
+                                    messageViewModel.deleteMessage(messageData.copy(senderId = senderUserData?.userId))
                                 }
                             }
                         }
@@ -206,7 +199,7 @@ fun MessageScreen(
                 var deleteDatabase by remember { mutableStateOf(false) }
 
                 for (i in selectedMessages) {
-                    if (i.getterUserId == userData.userId) {
+                    if (i.getterId == userData.userId) {
                         deleteDatabase = true
                     }
                 }
@@ -215,8 +208,8 @@ fun MessageScreen(
                     Button(
                         onClick = {
                             for (i in selectedMessages) {
-                                if (i.getterUserId == userData.userId) {
-                                    viewModel.deleteMessageFromDatabase(i.messageId ?: "")
+                                if (i.getterId == userData.userId) {
+                                    messageViewModel.deleteMessageFromDatabase(i.messageId ?: "")
                                 }
                             }
                             deleteAlert = false
@@ -249,9 +242,9 @@ fun MessageScreen(
                 ),
                 navigationIcon = {
                     IconButton(onClick = {
-                        if (selectedMessages.isEmpty()){
+                        if (selectedMessages.isEmpty()) {
                             navController.popBackStack()
-                        }else{
+                        } else {
                             selectedMessages.clear()
                         }
                     }) {
@@ -259,8 +252,11 @@ fun MessageScreen(
                     }
                 },
                 title = {
-                    if (selectedMessages.isEmpty()){
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    if (selectedMessages.isEmpty()) {
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Image(
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
@@ -277,10 +273,12 @@ fun MessageScreen(
                             Spacer(modifier = Modifier.size(10.dp))
                             Text(text = "${userData.username}")
                         }
-                    }else{
-                        Text(text = selectedMessages.size.toString(), modifier = Modifier.clickable {
+                    } else {
+                        Text(
+                            text = selectedMessages.size.toString(),
+                            modifier = Modifier.clickable {
 
-                        })
+                            })
                     }
                 },
                 actions = {
@@ -289,16 +287,17 @@ fun MessageScreen(
                             IconButton(onClick = {
                                 focusManager.clearFocus()
                                 focus.requestFocus()
-                                viewModel.isReplyingState.value = true
+                                messageViewModel.isReplyingState.value = true
                                 for (i in selectedMessages) {
-                                    if (URLUtil.isValidUrl(i.imageUrl)) {
-                                        viewModel.replyingImage.value = i.imageUrl ?: "null geldi"
+                                    if (URLUtil.isValidUrl(i.imageUrl.toString())) {
+                                        messageViewModel.replyingImage.value =
+                                            (i.imageUrl ?: "null geldi") as String
                                     } else if (URLUtil.isValidUrl(i.videoUrl)) {
-                                        viewModel.replyingVideo.value = i.videoUrl ?: "null geldi"
+                                        messageViewModel.replyingVideo.value = i.videoUrl ?: "null geldi"
                                     } else {
-                                        viewModel.replyingMessage.value = i.message ?: "null geldi"
+                                        messageViewModel.replyingMessage.value = i.message ?: "null geldi"
                                     }
-                                    viewModel.replyingPerson.value = i.senderUsername ?: ""
+                                    messageViewModel.replyingPerson.value = i.senderUsername ?: ""
                                 }
                                 selectedMessages.removeAll(messages)
                             }) {
@@ -306,22 +305,22 @@ fun MessageScreen(
                             }
 
                             for (i in selectedMessages) {
-                                if (i.imageUrl == "" && i.videoUrl == "") {
-                                    IconButton(onClick = {
-                                        clipboardManager.setText(AnnotatedString((i.message ?: "")))
-                                        Toast.makeText(
-                                            context,
-                                            "Message copied",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                        selectedMessages.removeAll(messages)
-                                    }) {
-                                        Icon(
-                                            imageVector = Icons.Default.ContentCopy,
-                                            contentDescription = ""
-                                        )
-                                    }
-                                }
+//                                if (i.imageUrl == "" && i.videoUrl == "") {
+//                                    IconButton(onClick = {
+//                                        clipboardManager.setText(AnnotatedString((i.message ?: "")))
+//                                        Toast.makeText(
+//                                            context,
+//                                            "Message copied",
+//                                            Toast.LENGTH_SHORT
+//                                        ).show()
+//                                        selectedMessages.removeAll(messages)
+//                                    }) {
+//                                        Icon(
+//                                            imageVector = Icons.Default.ContentCopy,
+//                                            contentDescription = ""
+//                                        )
+//                                    }
+//                                }
                             }
                         }
                         IconButton(onClick = {
@@ -338,20 +337,21 @@ fun MessageScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 70.dp),
+                    .padding(it),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
                 LazyColumn(state = scrollState, modifier = Modifier.weight(6f)) {
                     items(messages.takeLast(30)) {
-                        MessageItem(messageData = it,onSwipe = {
+                        MessageItem(messageData = it, onSwipe = {
                             focusManager.clearFocus()
                             focus.requestFocus()
                         })
                     }
                 }
-                if (isImageLoading) {
+                if (isMediaLoading) {
+                    Log.e("hehehe", "tru oldu")
                     Box(
                         Modifier
                             .fillMaxWidth()
@@ -365,7 +365,7 @@ fun MessageScreen(
                     }
                 }
 
-                if (viewModel.isReplyingState.value) {
+                if (messageViewModel.isReplyingState.value) {
                     Row(
                         Modifier
                             .padding(start = 10.dp)
@@ -384,27 +384,27 @@ fun MessageScreen(
                             modifier = Modifier.padding(start = 10.dp)
                         ) {
                             Text(
-                                text = viewModel.replyingPerson.value,
+                                text = messageViewModel.replyingPerson.value,
                                 textAlign = TextAlign.Start,
                                 color = Color.DarkGray
                             )
-                            if (URLUtil.isValidUrl(viewModel.replyingImage.value)) {
+                            if (URLUtil.isValidUrl(messageViewModel.replyingImage.value)) {
                                 Image(
                                     modifier = Modifier.size(50.dp),
-                                    painter = rememberImagePainter(data = viewModel.replyingImage.value),
+                                    painter = rememberImagePainter(data = messageViewModel.replyingImage.value),
                                     contentDescription = ""
                                 )
 
-                            } else if (URLUtil.isValidUrl(viewModel.replyingVideo.value)) {
+                            } else if (URLUtil.isValidUrl(messageViewModel.replyingVideo.value)) {
                                 Box(modifier = Modifier.size(50.dp)) {
                                     VideoPlayer(
-                                        url = viewModel.replyingVideo.value,
+                                        url = messageViewModel.replyingVideo.value,
                                         autoPlay = false
                                     )
                                 }
                             } else {
                                 Text(
-                                    text = viewModel.replyingMessage.value,
+                                    text = messageViewModel.replyingMessage.value,
                                     textAlign = TextAlign.Start,
                                     maxLines = 3,
                                     overflow = TextOverflow.Ellipsis
@@ -415,8 +415,8 @@ fun MessageScreen(
                         }
                         Spacer(modifier = Modifier.size(30.dp))
                         IconButton(onClick = {
-                            viewModel.isReplyingState.value = false
-                            viewModel.replyingMessage.value = ""
+                            messageViewModel.isReplyingState.value = false
+                            messageViewModel.replyingMessage.value = ""
                         }) {
                             Icon(imageVector = Icons.TwoTone.Close, contentDescription = "")
                         }
@@ -444,14 +444,14 @@ fun MessageScreen(
                                 onDismissRequest = { expanded = false }
                             ) {
                                 DropdownMenuItem(onClick = {
-                                    launcherImage.launch("image/*")
+                                    launcherMedia.launch("image/*")
                                     expanded = false
                                 }) {
                                     Icon(imageVector = Icons.TwoTone.Image, contentDescription = "")
                                     Text(text = "Image")
                                 }
                                 DropdownMenuItem(onClick = {
-                                    launcherVideo.launch("video/*")
+                                    launcherMedia.launch("video/*")
                                     expanded = false
                                 }) {
                                     Icon(
@@ -476,21 +476,47 @@ fun MessageScreen(
                                             scrollState.scrollToItem(messages.size)
                                         }
                                     }
-                                    viewModel.sendMessage(
-                                        message = messageTf.trimStart().trimEnd(),
-                                        getterUsername = userData.username ?: "",
-                                        getterUserImage = userData.image ?: "",
-                                        getterUserId = userData.userId ?: "",
-                                        getterToken = userData.token ?: "",
-                                        replyMessage = replyMessage,
-                                        replyImage = replyImage,
-                                        replyVideo = replyVideo
+                                    senderUserData?.let {
+                                        val getterUserId = userData.userId
+
+                                        if (getterUserId !in it.sendMsgTo) {
+                                            val updatedSendMsgTo =
+                                                it.sendMsgTo.toMutableList().apply {
+                                                    add(getterUserId ?: "")
+                                                }
+                                            val updatedUserData =
+                                                it.copy(sendMsgTo = updatedSendMsgTo)
+                                            userViewModel.updateUser(updatedUserData)
+                                        }
+                                        messageViewModel.gotMsgFrom(
+                                            getterUserId = userData.userId ?: "",
+                                            senderUserId = it.userId ?: ""
+                                        )
+                                    }
+                                    messageViewModel.sendMessage(
+                                        MessageData(
+                                            message = messageTf.trimStart().trimEnd(),
+                                            replyMessage = replyMessage,
+                                            replyImage = replyImage,
+                                            replyVideo = replyVideo,
+                                            visibility = mutableListOf(
+                                                senderUserData?.userId ?: "",
+                                                userData.userId ?: ""
+                                            ),
+                                            getterId = userData.userId,
+                                            getterUsername = userData.username,
+                                            getterImage = userData.image,
+                                            senderId = senderUserData?.userId,
+                                            senderUsername = senderUserData?.username,
+                                            senderImage = senderUserData?.image
+                                        )
                                     )
+
                                     messageTf = ""
-                                    viewModel.isReplyingState.value = false
-                                    viewModel.replyingMessage.value = ""
-                                    viewModel.replyingImage.value = ""
-                                    viewModel.replyingVideo.value = ""
+                                    messageViewModel.isReplyingState.value = false
+                                    messageViewModel.replyingMessage.value = ""
+                                    messageViewModel.replyingImage.value = ""
+                                    messageViewModel.replyingVideo.value = ""
                                 }
                             }) {
                                 Icon(imageVector = Icons.Default.Send, contentDescription = "")

@@ -57,7 +57,7 @@ import androidx.navigation.NavController
 import com.example.cotam.R
 import com.example.cotam.common.MyCheckSignedIn
 import com.example.cotam.common.MyProgressBar
-import com.example.cotam.presentation.SharedViewModel
+import com.example.cotam.presentation.screens.viewmodel.AuthViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.firebase.ktx.Firebase
@@ -68,12 +68,12 @@ import com.google.firebase.messaging.ktx.messaging
 @Composable
 fun SignInScreen(
     navController: NavController,
-    sharedViewModel: SharedViewModel = hiltViewModel()
+    authViewModel: AuthViewModel = hiltViewModel()
 ) {
 
-    MyCheckSignedIn(navController = navController, viewModel = sharedViewModel)
+    MyCheckSignedIn(navController = navController, viewModel = authViewModel)
 
-    val isLoading = sharedViewModel.isLoading.value
+    val isAuthLoading = authViewModel.isAuthLoading.value
     val focus = LocalFocusManager.current
     var emailTf by remember { mutableStateOf("zaur@gmail.com") }
     var emailTfError by remember { mutableStateOf(false) }
@@ -202,7 +202,7 @@ fun SignInScreen(
                     passwordTfError = passwordTf.isEmpty()
 
                     if (!emailTfError && !passwordTfError) {
-                        sharedViewModel.signIn(
+                        authViewModel.signIn(
                             email = emailTf,
                             password = passwordTf,
                             context = context
@@ -286,7 +286,7 @@ fun SignInScreen(
                     passwordTfError = passwordTf.isEmpty()
 
                     if (!emailTfError && !passwordTfError) {
-                        sharedViewModel.signIn(
+                        authViewModel.signIn(
                             email = emailTf,
                             password = passwordTf,
                             context = context
@@ -306,7 +306,7 @@ fun SignInScreen(
 
         }
 
-        if (isLoading) {
+        if (isAuthLoading) {
             MyProgressBar()
         }
     }

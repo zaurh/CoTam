@@ -45,27 +45,28 @@ import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.example.cotam.R
 import com.example.cotam.common.MyProgressBar
-import com.example.cotam.presentation.SharedViewModel
+import com.example.cotam.data.UserData
+import com.example.cotam.presentation.screens.viewmodel.AuthViewModel
+import com.example.cotam.presentation.screens.viewmodel.StorageViewModel
+import com.example.cotam.presentation.screens.viewmodel.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun SettingsScreen(
-    navController: NavController, viewModel: SharedViewModel = hiltViewModel()
+    navController: NavController,
+    userViewModel: UserViewModel = hiltViewModel(),
+    authViewModel: AuthViewModel = hiltViewModel(),
+    storageViewModel: StorageViewModel = hiltViewModel()
 ) {
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let {
-            viewModel.uploadProfileImage(uri)
-        }
-    }
 
-    val userData = viewModel.userData.value
-    val isImageLoading = viewModel.isImageLoading.value
+
+    val userData = userViewModel.userData.value
+    val isMediaLoading = storageViewModel.isMediaLoading.value
     val focus = LocalFocusManager.current
 
     var usernameTfError by remember { mutableStateOf(false) }
+
 
 
 
@@ -79,7 +80,18 @@ fun SettingsScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             userData?.let {
+                var userImage by remember { mutableStateOf(userData.image ?: "https://shorturl.at/jmoHM") }
                 var usernameTf by remember { mutableStateOf(userData.username ?: "") }
+
+                val launcher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.GetContent()
+                ) { uri: Uri? ->
+                    uri?.let {
+                        storageViewModel.uploadMedia(it, "images"){
+                            userImage = it.toString()
+                        }
+                    }
+                }
 
                 Box(modifier = Modifier.clickable {
                     launcher.launch("image/*")
@@ -89,7 +101,7 @@ fun SettingsScreen(
                             .size(200.dp)
                             .clip(CircleShape),
                         painter = rememberImagePainter(
-                            data = userData.image ?: "https://shorturl.at/jmoHM"
+                            data = userImage
                         ),
                         contentDescription = ""
                     )
@@ -144,8 +156,11 @@ fun SettingsScreen(
                         focus.clearFocus()
                         usernameTfError = usernameTf.isEmpty()
                         if (usernameTf.isNotEmpty()) {
-                            viewModel.updateUser(
-                                usernameTf.trim().replace(" ", ""), imageUrl = userData.image
+                            userViewModel.updateUser(
+                                userData = userData.copy(
+                                    username = usernameTf.trim().replace(" ", ""),
+                                    image = userImage
+                                )
                             )
                             navController.navigate("main") {
                                 popUpTo(0)
@@ -162,7 +177,7 @@ fun SettingsScreen(
                     ),
                     onClick = {
                         focus.clearFocus()
-                        viewModel.signOut()
+                        authViewModel.signOut()
                         navController.navigate("auth") {
                             popUpTo(0)
                         }
@@ -173,7 +188,7 @@ fun SettingsScreen(
             }
         }
     }
-    if (isImageLoading) {
+    if (isMediaLoading) {
         MyProgressBar()
     }
 }

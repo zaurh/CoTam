@@ -1,6 +1,5 @@
 package com.example.cotam.presentation.screens
 
-import android.Manifest
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,14 +11,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.*
@@ -31,26 +28,24 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.cotam.R
-import com.example.cotam.presentation.SharedViewModel
 import com.example.cotam.presentation.components.UsersItem
+import com.example.cotam.presentation.screens.viewmodel.MessageViewModel
+import com.example.cotam.presentation.screens.viewmodel.UserViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
-import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
-import com.google.firebase.messaging.ktx.messaging
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "PermissionLaunchedDuringComposition")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun MainScreen(
     navController: NavController,
-    viewModel: SharedViewModel = hiltViewModel()
+    userViewModel: UserViewModel = hiltViewModel()
 ) {
 
     val swipeRefreshState = rememberSwipeRefreshState(false)
-    val users = viewModel.usersData.value
+    val users = userViewModel.usersData.value
     val token = remember { mutableStateOf("a") }
     val registrationToken = FirebaseMessaging.getInstance().token
 
@@ -59,18 +54,21 @@ fun MainScreen(
     }
 
 
-    LaunchedEffect(true){
-        val user = viewModel.userData.value
-
-        user?.let {
-            registrationToken.addOnSuccessListener {
-                viewModel.updateUser(
-                    token = it,
-                    username = user.username
-                )
-            }
-        }
-    }
+//    LaunchedEffect(true){
+//        val user = userViewModel.userData.value
+//
+//        user?.let {
+//            registrationToken.addOnSuccessListener {
+//                userViewModel.updateUser(
+//                    UserData(
+//                        token = it,
+////                        username = user.username,
+//                        sendMsgTo = user.sendMsgTo
+//                    )
+//                )
+//            }
+//        }
+//    }
 
     Scaffold(
         topBar = {
@@ -114,14 +112,12 @@ fun MainScreen(
                             .fillMaxSize()
                             .weight(8f)
                     ) {
-
                         items(users) {
                             UsersItem(
                                 userData = it,
                                 navController = navController,
                                 showAllUsers = false,
-                                showLastMessage = true,
-                                showNewMessage = true
+                                showLastMessage = true
                             )
                         }
                     }

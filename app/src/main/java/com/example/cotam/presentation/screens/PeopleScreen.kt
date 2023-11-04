@@ -30,17 +30,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.cotam.presentation.SharedViewModel
 import com.example.cotam.presentation.components.UsersItem
+import com.example.cotam.presentation.screens.viewmodel.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PeopleScreen(
     navController: NavController,
-    viewModel: SharedViewModel = hiltViewModel()
+    userViewModel: UserViewModel = hiltViewModel()
 ) {
 
-    val users = viewModel.usersData.value
+    val users = userViewModel.usersData.value
     val focusManager = LocalFocusManager.current
     var text by rememberSaveable { mutableStateOf("") }
     val focus = FocusRequester()
@@ -65,7 +65,7 @@ fun PeopleScreen(
 
                 BackHandler(enabled = text.isNotEmpty(), onBack = {
                     text = ""
-                    viewModel.clearSearch()
+                    userViewModel.clearSearch()
                     focusManager.clearFocus()
                 })
                 TextField(
@@ -81,7 +81,7 @@ fun PeopleScreen(
                     value = text,
                     onValueChange = {
                         text = it
-                        viewModel.searchList(it)
+                        userViewModel.searchUser(it)
                     },
                     maxLines = 1,
                     singleLine = true,
@@ -104,8 +104,7 @@ fun PeopleScreen(
                         userData = it,
                         navController = navController,
                         showAllUsers = true,
-                        showLastMessage = false,
-                        showNewMessage = false
+                        showLastMessage = false
                     )
                 }
             }

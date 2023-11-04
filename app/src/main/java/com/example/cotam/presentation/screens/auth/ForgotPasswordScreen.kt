@@ -48,14 +48,14 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.cotam.R
 import com.example.cotam.common.MyProgressBar
-import com.example.cotam.presentation.SharedViewModel
+import com.example.cotam.presentation.screens.viewmodel.AuthViewModel
 
 @Composable
 fun ForgotPasswordScreen(
-    sharedViewModel: SharedViewModel = hiltViewModel()
+    authViewModel: AuthViewModel = hiltViewModel()
 ) {
 
-    val isLoading = sharedViewModel.isLoading.value
+    val isLoading = authViewModel.isAuthLoading.value
     val focus = LocalFocusManager.current
     var emailTf by remember { mutableStateOf("") }
     var emailTfError by remember { mutableStateOf(false) }
@@ -130,7 +130,7 @@ fun ForgotPasswordScreen(
                     if (emailTf.isEmpty()) {
                         emailTfError = true
                     } else {
-                        sharedViewModel.forgotPassword(emailTf, context)
+                        authViewModel.forgotPassword(emailTf, context)
                         focus.clearFocus()
                     }
                 }),
@@ -169,7 +169,7 @@ fun ForgotPasswordScreen(
                     if (emailTf.isEmpty()) {
                         emailTfError = true
                     } else {
-                        sharedViewModel.forgotPassword(emailTf, context)
+                        authViewModel.forgotPassword(emailTf, context)
                         focus.clearFocus()
                     }
                 }) {

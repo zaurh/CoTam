@@ -55,7 +55,7 @@ import androidx.navigation.NavController
 import com.example.cotam.R
 import com.example.cotam.common.MyCheckSignedIn
 import com.example.cotam.common.MyProgressBar
-import com.example.cotam.presentation.SharedViewModel
+import com.example.cotam.presentation.screens.viewmodel.AuthViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.firebase.ktx.Firebase
@@ -66,13 +66,13 @@ import com.google.firebase.messaging.ktx.messaging
 @Composable
 fun SignUpScreen(
     navController: NavController,
-    sharedViewModel: SharedViewModel = hiltViewModel()
+    authViewModel: AuthViewModel = hiltViewModel()
 ) {
 
-    MyCheckSignedIn(navController = navController, viewModel = sharedViewModel)
+    MyCheckSignedIn(navController = navController, viewModel = authViewModel)
 
     val context = LocalContext.current
-    val isLoading = sharedViewModel.isLoading.value
+    val isAuthLoading = authViewModel.isAuthLoading.value
     val focus = LocalFocusManager.current
 
     var usernameTf by remember { mutableStateOf("") }
@@ -333,7 +333,7 @@ fun SignUpScreen(
                     passwordTfError = passwordTf.isEmpty()
                     confirmPasswordTfError = confirmPasswordTf.isEmpty()
                     if (!usernameError && !emailTfError && !passwordTfError && !confirmPasswordTfError) {
-                        sharedViewModel.signUp(
+                        authViewModel.signUp(
                             emailTf,
                             passwordTf,
                             confirmPasswordTf,
@@ -411,7 +411,7 @@ fun SignUpScreen(
                     passwordTfError = passwordTf.isEmpty()
                     confirmPasswordTfError = confirmPasswordTf.isEmpty()
                     if (!usernameError && !emailTfError && !passwordTfError && !confirmPasswordTfError) {
-                        sharedViewModel.signUp(
+                        authViewModel.signUp(
                             emailTf,
                             passwordTf,
                             confirmPasswordTf,
@@ -434,7 +434,7 @@ fun SignUpScreen(
 
         }
 
-        if (isLoading) {
+        if (isAuthLoading) {
             MyProgressBar()
         }
 

@@ -1,5 +1,7 @@
 package com.example.cotam.common
 
+import android.content.ContentResolver
+import android.net.Uri
 import android.os.Parcelable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -13,21 +15,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.example.cotam.R
-import com.example.cotam.presentation.SharedViewModel
+import com.example.cotam.presentation.screens.viewmodel.AuthViewModel
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.ui.PlayerView
@@ -35,7 +34,6 @@ import com.google.firebase.Timestamp
 import me.saket.telephoto.zoomable.ZoomableContentLocation
 import me.saket.telephoto.zoomable.rememberZoomableState
 import me.saket.telephoto.zoomable.zoomable
-import okhttp3.internal.wait
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -64,7 +62,7 @@ fun navigateTo(navController: NavController, dest: String, vararg params: NavPar
 @Composable
 fun MyCheckSignedIn(
     navController: NavController,
-    viewModel: SharedViewModel
+    viewModel: AuthViewModel
 ) {
     val alreadyLoggedIn = remember { mutableStateOf(false) }
     val signedIn = viewModel.isSignedIn.value
@@ -140,3 +138,13 @@ fun VideoPlayer(url: String, autoPlay: Boolean) {
 }
 
 
+
+fun isImageFile(uri: Uri, contentResolver: ContentResolver): Boolean {
+    val mimeType = contentResolver.getType(uri)
+    return mimeType?.startsWith("image/") == true
+}
+
+fun isVideoFile(uri: Uri, contentResolver: ContentResolver): Boolean {
+    val mimeType = contentResolver.getType(uri)
+    return mimeType?.startsWith("video/") == true
+}

@@ -1,11 +1,7 @@
 package com.example.cotam.presentation.components
 
-import android.view.WindowInsets.Side
 import android.webkit.URLUtil
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -30,7 +26,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,14 +45,13 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.ImagePainter.State.Empty.painter
 import coil.compose.rememberImagePainter
 import com.example.cotam.R
 import com.example.cotam.common.VideoPlayer
 import com.example.cotam.common.ZoomableImg
 import com.example.cotam.common.myTime
 import com.example.cotam.data.MessageData
-import com.example.cotam.presentation.SharedViewModel
+import com.example.cotam.presentation.screens.viewmodel.MessageViewModel
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.ui.PlayerView
@@ -70,19 +64,18 @@ import me.saket.swipe.SwipeableActionsBox
 fun MessageItem(
     auth: FirebaseAuth = FirebaseAuth.getInstance(),
     messageData: MessageData,
-    viewModel: SharedViewModel = hiltViewModel(),
+    messageViewModel: MessageViewModel = hiltViewModel(),
     onSwipe: () -> Unit
 ) {
-
     var imageDialogState by remember { mutableStateOf(false) }
     var videoDialogState by remember { mutableStateOf(false) }
 
-    val senderUid = messageData.senderUserId
+    val senderUid = messageData.senderId
     val currentUid = auth.currentUser?.uid
 
     var senderSide by remember { mutableStateOf(false) }
 
-    val selectedMessages = viewModel.selectedMessages
+    val selectedMessages = messageViewModel.selectedMessages
 
     val context = LocalContext.current
 
@@ -103,21 +96,21 @@ fun MessageItem(
         background = Color.Transparent,
         onSwipe = {
             onSwipe()
-            viewModel.isReplyingState.value = true
+            messageViewModel.isReplyingState.value = true
             if (URLUtil.isValidUrl(messageData.imageUrl)) {
-                viewModel.replyingMessage.value = ""
-                viewModel.replyingVideo.value = ""
-                viewModel.replyingImage.value = messageData.imageUrl ?: "null geldi"
+                messageViewModel.replyingMessage.value = ""
+                messageViewModel.replyingVideo.value = ""
+                messageViewModel.replyingImage.value = (messageData.imageUrl ?: "null")
             } else if (URLUtil.isValidUrl(messageData.videoUrl)) {
-                viewModel.replyingMessage.value = ""
-                viewModel.replyingImage.value = ""
-                viewModel.replyingVideo.value = messageData.videoUrl ?: "null geldi"
+                messageViewModel.replyingMessage.value = ""
+                messageViewModel.replyingImage.value = ""
+                messageViewModel.replyingVideo.value = messageData.videoUrl ?: "null"
             } else {
-                viewModel.replyingImage.value = ""
-                viewModel.replyingVideo.value = ""
-                viewModel.replyingMessage.value = messageData.message ?: "null geldi"
+                messageViewModel.replyingImage.value = ""
+                messageViewModel.replyingVideo.value = ""
+                messageViewModel.replyingMessage.value = messageData.message ?: "null"
             }
-            viewModel.replyingPerson.value = messageData.senderUsername ?: "null geldi"
+            messageViewModel.replyingPerson.value = messageData.senderUsername ?: "null"
         }
     )
 
@@ -156,15 +149,6 @@ fun MessageItem(
                                 selectedMessages.add(messageData)
                             }
                         },
-//                        onDoubleClick = {
-//                            if (messageData.getterUserId == auth.uid) {
-//                                if (messageData.messageIsLiked == true) {
-//                                    viewModel.likeMessage(messageData.messageId ?: "", false)
-//                                } else {
-//                                    viewModel.likeMessage(messageData.messageId ?: "", true)
-//                                }
-//                            }
-//                        }
                     )
                     .padding(10.dp),
                 horizontalAlignment = if (senderUid == currentUid) Alignment.End else Alignment.Start
@@ -177,7 +161,7 @@ fun MessageItem(
                             onDismissRequest = {
                                 imageDialogState = false
                             }) {
-                            ZoomableImg(url = messageData.imageUrl ?: "")
+                            ZoomableImg(url = (messageData.imageUrl ?: ""))
                         }
                     }
                 }
@@ -210,7 +194,7 @@ fun MessageItem(
                     visible = emojiPickerState
                 ) {
                     if (selectedMessages.size == 1) {
-                        if (messageData.senderUserId != auth.uid) {
+                        if (messageData.senderId != auth.uid) {
                             Row(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(20.dp))
@@ -221,7 +205,7 @@ fun MessageItem(
                                     text = "\uD83D\uDC4D\uD83C\uDFFB",
                                     fontSize = 26.sp,
                                     modifier = Modifier.clickable {
-                                        viewModel.emoteMessage(
+                                        messageViewModel.emoteMessage(
                                             messageData.messageId ?: "",
                                             "\uD83D\uDC4D\uD83C\uDFFB"
                                         )
@@ -229,7 +213,7 @@ fun MessageItem(
                                         emojiPickerState = false
                                     })
                                 Text(text = "❤️", fontSize = 26.sp, modifier = Modifier.clickable {
-                                    viewModel.emoteMessage(messageData.messageId ?: "", "❤️")
+                                    messageViewModel.emoteMessage(messageData.messageId ?: "", "❤️")
                                     selectedMessages.clear()
                                     emojiPickerState = false
 
@@ -238,7 +222,7 @@ fun MessageItem(
                                     text = "\uD83D\uDE02",
                                     fontSize = 26.sp,
                                     modifier = Modifier.clickable {
-                                        viewModel.emoteMessage(
+                                        messageViewModel.emoteMessage(
                                             messageData.messageId ?: "",
                                             "\uD83D\uDE02"
                                         )
@@ -250,7 +234,7 @@ fun MessageItem(
                                     text = "\uD83D\uDE22",
                                     fontSize = 26.sp,
                                     modifier = Modifier.clickable {
-                                        viewModel.emoteMessage(
+                                        messageViewModel.emoteMessage(
                                             messageData.messageId ?: "",
                                             "\uD83D\uDE22"
                                         )
@@ -262,7 +246,7 @@ fun MessageItem(
                                     text = "\uD83D\uDE21",
                                     fontSize = 26.sp,
                                     modifier = Modifier.clickable {
-                                        viewModel.emoteMessage(
+                                        messageViewModel.emoteMessage(
                                             messageData.messageId ?: "",
                                             "\uD83D\uDE21"
                                         )
@@ -422,8 +406,6 @@ fun MessageItem(
                     Text(text = messageData.messageIsEmoted ?: "")
                     Text(text = myTime(messageData.time!!), fontSize = 12.sp)
                 }
-
-
             }
         }
     }

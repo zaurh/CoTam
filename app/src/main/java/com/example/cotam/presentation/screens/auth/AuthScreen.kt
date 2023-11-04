@@ -12,10 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,14 +30,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.cotam.R
 import com.example.cotam.common.MyCheckSignedIn
-import com.example.cotam.presentation.SharedViewModel
+import com.example.cotam.presentation.screens.viewmodel.AuthViewModel
 
 @Composable
 fun AuthScreen(
     navController: NavController,
-    viewModel: SharedViewModel = hiltViewModel()
+    authViewModel: AuthViewModel = hiltViewModel()
 ) {
-    MyCheckSignedIn(navController = navController, viewModel = viewModel)
+    MyCheckSignedIn(navController = navController, viewModel = authViewModel)
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
             contentScale = ContentScale.Crop,

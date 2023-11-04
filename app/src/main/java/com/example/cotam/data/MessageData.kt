@@ -1,5 +1,6 @@
 package com.example.cotam.data
 
+import android.net.Uri
 import android.os.Parcel
 import android.os.Parcelable
 import com.google.firebase.Timestamp
@@ -14,21 +15,19 @@ data class MessageData(
     var imageUrl: String? = null,
     var videoUrl: String? = null,
 
-    val senderUserId: String? = null,
+    val senderId: String? = null,
+    val senderImage: String? = null,
     val senderUsername: String? = null,
-    val senderUserImage: String? = null,
 
+    val getterId: String? = null,
+    val getterImage: String? = null,
     val getterUsername: String? = null,
-    val getterUserId: String? = null,
-    val getterUserImage: String? = null,
-    val getterToken: String? = null,
 
     val time: Timestamp? = Timestamp.now(),
 
-    val visibility: List<String> = emptyList()
+    val visibility: MutableList<String> = mutableListOf()
 
 ) : Parcelable {
-
 
     constructor(parcel: Parcel) : this(
         parcel.readString(),
@@ -45,29 +44,31 @@ data class MessageData(
         parcel.readString(),
         parcel.readString(),
         parcel.readString(),
-        parcel.readString(),
         parcel.readParcelable(Timestamp::class.java.classLoader),
+        TODO("visibility")
     ) {
     }
+
+    fun toMap() = mapOf(
+        "visibility" to visibility
+    )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(messageId)
         parcel.writeString(message)
-        parcel.writeValue(messageIsEmoted)
+        parcel.writeString(messageIsEmoted)
         parcel.writeString(replyMessage)
         parcel.writeString(replyImage)
         parcel.writeString(replyVideo)
         parcel.writeString(imageUrl)
         parcel.writeString(videoUrl)
-        parcel.writeString(senderUserId)
+        parcel.writeString(senderId)
+        parcel.writeString(senderImage)
         parcel.writeString(senderUsername)
-        parcel.writeString(senderUserImage)
+        parcel.writeString(getterId)
+        parcel.writeString(getterImage)
         parcel.writeString(getterUsername)
-        parcel.writeString(getterUserId)
-        parcel.writeString(getterUserImage)
-        parcel.writeString(getterToken)
         parcel.writeParcelable(time, flags)
-        parcel.writeStringList(visibility)
     }
 
     override fun describeContents(): Int {

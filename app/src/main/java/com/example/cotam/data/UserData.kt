@@ -10,8 +10,8 @@ data class UserData(
     val image: String? = null,
     var token: String? = null,
 
-    val sendMsgTo: List<String> = emptyList(),
-    val gotMsgFrom: List<String> = emptyList(),
+    var sendMsgTo: MutableList<String> = mutableListOf(),
+    val gotMsgFrom: MutableList<String> = mutableListOf(),
 
     ) : Parcelable {
 
