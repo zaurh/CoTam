@@ -5,18 +5,27 @@ import android.net.Uri
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.cotam.data.remote.MessageData
+import com.example.cotam.data.remote.NotificationData
+import com.example.cotam.data.remote.PushNotification
 import com.example.cotam.data.repository.MessageRepo
+import com.example.cotam.data.repository.NotificationRepository
+import com.example.cotam.data.repository.UserRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
 @HiltViewModel
 class MessageViewModel @Inject constructor(
-    private val messageRepo: MessageRepo
+    private val messageRepo: MessageRepo,
+    private val userRepo: UserRepo,
+    private val notificationRepo: NotificationRepository
 ) : ViewModel(){
 
-    val userData = messageRepo.userData
+
+    val userData = userRepo.userData.value
     val privateMessagesData = messageRepo.privateMessagesData
     val allMessages = messageRepo.allMessages
     val selectedMessages = mutableStateListOf<MessageData>()
@@ -67,11 +76,8 @@ class MessageViewModel @Inject constructor(
         messageRepo.emoteMessage(messageId, myEmoji)
     }
 
-    //getterUser take senderUserId to gotMsgFrom
-    fun gotMsgFrom(
-        getterUserId: String,
-        senderUserId:String
-    ){
-        messageRepo.gotMsgFrom(getterUserId, senderUserId)
+    suspend fun sendNotificiation(notification: PushNotification){
+        notificationRepo.sendNotification(notification)
     }
+
 }

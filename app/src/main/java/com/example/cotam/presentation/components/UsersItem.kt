@@ -54,13 +54,6 @@ fun UsersItem(
     val currentUser = userViewModel.userData.value
     val messages = messageViewModel.allMessages
 
-    if (userData.userId == auth.currentUser?.uid) {
-        return
-    } else if (currentUser?.gotMsgFrom?.contains(userData.userId) == true) {
-        showListState.value = true
-    } else if (currentUser?.sendMsgTo?.contains(userData.userId) == true) {
-        showListState.value = true
-    }
 
     if (showListState.value) {
         Row(

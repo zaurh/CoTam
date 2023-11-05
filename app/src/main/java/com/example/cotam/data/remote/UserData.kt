@@ -9,23 +9,19 @@ data class UserData(
     val image: String? = null,
     var token: String? = null,
 
-    var sendMsgTo: MutableList<String> = mutableListOf(),
-    val gotMsgFrom: MutableList<String> = mutableListOf(),
-
     ) : Parcelable {
 
     constructor(parcel: Parcel) : this(
         parcel.readString(),
         parcel.readString(),
         parcel.readString(),
+        parcel.readString()
     ) {
     }
 
     fun toMap() = mapOf(
         "username" to username,
         "image" to image,
-        "sendMsgTo" to sendMsgTo,
-        "gotMsgFrom" to gotMsgFrom,
         "token" to token
     )
 
@@ -33,8 +29,7 @@ data class UserData(
         parcel.writeString(userId)
         parcel.writeString(username)
         parcel.writeString(image)
-        parcel.writeStringList(sendMsgTo)
-        parcel.writeStringList(gotMsgFrom)
+        parcel.writeString(token)
     }
 
     override fun describeContents(): Int {

@@ -65,6 +65,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.example.cotam.R
@@ -72,6 +73,8 @@ import com.example.cotam.common.Constants.messagingUsernameNotification
 import com.example.cotam.common.VideoPlayer
 import com.example.cotam.common.ZoomableImg
 import com.example.cotam.data.remote.MessageData
+import com.example.cotam.data.remote.NotificationData
+import com.example.cotam.data.remote.PushNotification
 import com.example.cotam.data.remote.UserData
 import com.example.cotam.data.toUserEntity
 import com.example.cotam.presentation.components.MessageItem
@@ -271,7 +274,7 @@ fun MessageScreen(
                                     .clip(CircleShape)
                                     .size(35.dp)
                                     .clickable {
-                                        if (userData.image != null){
+                                        if (userData.image != null) {
                                             dialogState = true
                                         }
                                     },
@@ -350,8 +353,6 @@ fun MessageScreen(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
-
                 LazyColumn(state = scrollState, modifier = Modifier.weight(6f)) {
                     items(messages.takeLast(30)) {
                         MessageItem(messageData = it, onSwipe = {
@@ -361,7 +362,6 @@ fun MessageScreen(
                     }
                 }
                 if (isMediaLoading) {
-                    Log.e("hehehe", "tru oldu")
                     Box(
                         Modifier
                             .fillMaxWidth()
@@ -492,28 +492,22 @@ fun MessageScreen(
                                 }
 
                                 if (messageTf.trim().isNotEmpty()) {
+                                    val notificationData = NotificationData(
+                                        title = senderUserData?.username ?: "",
+                                        text = messageTf
+                                    )
+
+                                    val pushNotification = PushNotification(data = notificationData, to = userData.token ?: "")
+
                                     scope.launch {
+                                        messageViewModel.sendNotificiation(
+                                            pushNotification
+                                        )
                                         if (messages.isNotEmpty()) {
                                             scrollState.scrollToItem(messages.size)
                                         }
                                     }
-                                    senderUserData?.let {
-                                        val getterUserId = userData.userId
 
-                                        if (getterUserId !in it.sendMsgTo) {
-                                            val updatedSendMsgTo =
-                                                it.sendMsgTo.toMutableList().apply {
-                                                    add(getterUserId ?: "")
-                                                }
-                                            val updatedUserData =
-                                                it.copy(sendMsgTo = updatedSendMsgTo)
-                                            userViewModel.updateUser(updatedUserData)
-                                        }
-                                        messageViewModel.gotMsgFrom(
-                                            getterUserId = userData.userId ?: "",
-                                            senderUserId = it.userId ?: ""
-                                        )
-                                    }
                                     messageViewModel.sendMessage(
                                         MessageData(
                                             message = messageTf.trimStart().trimEnd(),

@@ -74,7 +74,6 @@ fun Navig() {
         composable("main") {
             MainScreen(
                 navController = navController,
-                roomViewModel = roomViewModel,
                 userViewModel = userViewModel
             )
         }

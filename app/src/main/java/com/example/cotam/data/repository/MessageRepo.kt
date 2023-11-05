@@ -64,15 +64,7 @@ class MessageRepo @Inject constructor(
         sendPrivateMessage(
             messageData
         )
-//        val notificationData = NotificationData(
-//            title = userData.value?.username ?: "",
-//            text = message
-//        )
 
-//        val pushNotification = PushNotification(data = notificationData, to = getterToken)
-//        viewModelScope.launch {
-//            repository.sendNotification(pushNotification)
-//        }
     }
 
     private fun sendPrivateMessage(
@@ -86,30 +78,6 @@ class MessageRepo @Inject constructor(
         firestore.collection("message").document(randomId).set(msgData).addOnSuccessListener {
             isMessageLoading.value = false
         }
-    }
-
-    fun gotMsgFrom(
-        getterUserId: String,
-        senderUserId: String
-    ) {
-        firestore.collection("user")
-            .whereEqualTo("userId", getterUserId)
-            .get()
-            .addOnSuccessListener { documents ->
-                for (document in documents) {
-                    val gotMessagesFrom =
-                        document.get("gotMsgFrom") as? ArrayList<String> ?: arrayListOf()
-
-                    if (gotMessagesFrom.contains(senderUserId)) {
-                        gotMessagesFrom.remove(senderUserId)
-                        gotMessagesFrom.add(senderUserId)
-                    } else {
-                        gotMessagesFrom.add(senderUserId)
-                    }
-
-                    document.reference.update("gotMsgFrom", gotMessagesFrom)
-                }
-            }
     }
 
     fun getPrivateMessages(senderId: String, getterId: String) {

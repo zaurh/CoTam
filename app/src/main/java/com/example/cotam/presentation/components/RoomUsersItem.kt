@@ -64,9 +64,7 @@ fun RoomUsersItem(
     val messages = messageViewModel.allMessages
     val currentUserId = authViewModel.currentUserId.collectAsState()
     val selectedUsers = roomViewModel.selectedUsers
-
-
-
+    
 
     if (showListState.value) {
         Row(
@@ -86,7 +84,7 @@ fun RoomUsersItem(
                             } else {
                                 selectedUsers.add(userEntity)
                             }
-                        }else{
+                        } else {
                             navigateTo(
                                 navController,
                                 "message",
@@ -127,7 +125,7 @@ fun RoomUsersItem(
                                 } else {
                                     selectedUsers.add(userEntity)
                                 }
-                            }else{
+                            } else {
                                 if (userEntity.userImage?.isNotEmpty() == true) {
                                     dialogState = true
                                 }
@@ -150,7 +148,6 @@ fun RoomUsersItem(
             Spacer(modifier = Modifier.size(10.dp))
 
             Column {
-
                 Text(text = userEntity.username ?: "", fontSize = 18.sp)
 
                 if (showLastMessage) {

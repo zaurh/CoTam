@@ -12,10 +12,12 @@ data class UserEntity(
     @ColumnInfo(name = "userRoomId") val userRoomId: Int? = null,
     @ColumnInfo(name = "userId") val userId: String? = null,
     @ColumnInfo(name = "username") val username: String? = null,
-    @ColumnInfo(name = "userImage") val userImage: String? = null
+    @ColumnInfo(name = "userImage") val userImage: String? = null,
+    @ColumnInfo(name = "token") val token: String? = null
 ): Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readValue(Int::class.java.classLoader) as? Int,
+        parcel.readString(),
         parcel.readString(),
         parcel.readString(),
         parcel.readString()
@@ -27,6 +29,7 @@ data class UserEntity(
         parcel.writeString(userId)
         parcel.writeString(username)
         parcel.writeString(userImage)
+        parcel.writeString(token)
     }
 
     override fun describeContents(): Int {
@@ -42,5 +45,6 @@ data class UserEntity(
             return arrayOfNulls(size)
         }
     }
+
 
 }

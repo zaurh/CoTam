@@ -49,11 +49,11 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.google.firebase.messaging.FirebaseMessaging
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "PermissionLaunchedDuringComposition")
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     navController: NavController,
-    roomViewModel: RoomViewModel,
+    roomViewModel: RoomViewModel = hiltViewModel(),
     userViewModel: UserViewModel
 ) {
 
@@ -169,11 +169,11 @@ fun MainScreen(
                     popUpTo(0)
                 }
             }) {
-
                 Column(
                     modifier = Modifier
                         .padding(top = 70.dp),
                 ) {
+
                     if (searchState) {
                         var searchQuery by remember { mutableStateOf("") }
                         LaunchedEffect(key1 = true) {

@@ -17,10 +17,12 @@ data class MessageData(
     val senderId: String? = null,
     val senderImage: String? = null,
     val senderUsername: String? = null,
+    val senderToken: String? = null,
 
     val getterId: String? = null,
     val getterImage: String? = null,
     val getterUsername: String? = null,
+    val getterToken: String? = null,
 
     val time: Timestamp? = Timestamp.now(),
 

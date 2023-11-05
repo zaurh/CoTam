@@ -20,8 +20,6 @@ class UserViewModel @Inject constructor(
     val usersData = userRepo.usersData
 
 
-
-
     private var isSearchStarting = true
     private var initialUsers = listOf<UserData>()
 
