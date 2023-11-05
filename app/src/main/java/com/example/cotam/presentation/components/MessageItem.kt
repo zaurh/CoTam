@@ -50,7 +50,7 @@ import com.example.cotam.R
 import com.example.cotam.common.VideoPlayer
 import com.example.cotam.common.ZoomableImg
 import com.example.cotam.common.myTime
-import com.example.cotam.data.MessageData
+import com.example.cotam.data.remote.MessageData
 import com.example.cotam.presentation.screens.viewmodel.MessageViewModel
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.SimpleExoPlayer
@@ -157,7 +157,6 @@ fun MessageItem(
                     Surface(modifier = Modifier.fillMaxSize()) {
                         Dialog(
                             properties = DialogProperties(usePlatformDefaultWidth = false),
-
                             onDismissRequest = {
                                 imageDialogState = false
                             }) {

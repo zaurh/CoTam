@@ -5,8 +5,7 @@ import android.net.Uri
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import com.example.cotam.data.MessageData
-import com.example.cotam.data.UserData
+import com.example.cotam.data.remote.MessageData
 import com.example.cotam.data.repository.MessageRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject

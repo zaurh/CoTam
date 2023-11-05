@@ -1,7 +1,7 @@
 package com.example.cotam.data.repository
 
 import com.example.cotam.common.notification.NotificationApi
-import com.example.cotam.data.PushNotification
+import com.example.cotam.data.remote.PushNotification
 import okhttp3.ResponseBody
 import retrofit2.Response
 import javax.inject.Inject

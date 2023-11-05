@@ -1,194 +1,124 @@
 package com.example.cotam.presentation.screens
 
-import android.annotation.SuppressLint
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.SetMeal
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import coil.compose.rememberImagePainter
 import com.example.cotam.R
-import com.example.cotam.common.MyProgressBar
-import com.example.cotam.data.UserData
+import com.example.cotam.common.NavParam
+import com.example.cotam.common.navigateTo
+import com.example.cotam.data.remote.UserData
 import com.example.cotam.presentation.screens.viewmodel.AuthViewModel
-import com.example.cotam.presentation.screens.viewmodel.StorageViewModel
 import com.example.cotam.presentation.screens.viewmodel.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
-@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun SettingsScreen(
     navController: NavController,
-    userViewModel: UserViewModel = hiltViewModel(),
-    authViewModel: AuthViewModel = hiltViewModel(),
-    storageViewModel: StorageViewModel = hiltViewModel()
+    authViewModel: AuthViewModel,
+    userViewModel: UserViewModel
 ) {
-
-
+    val uriHandler = LocalUriHandler.current
     val userData = userViewModel.userData.value
-    val isMediaLoading = storageViewModel.isMediaLoading.value
-    val focus = LocalFocusManager.current
-
-    var usernameTfError by remember { mutableStateOf(false) }
 
 
-
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(50.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            userData?.let {
-                var userImage by remember { mutableStateOf(userData.image ?: "https://shorturl.at/jmoHM") }
-                var usernameTf by remember { mutableStateOf(userData.username ?: "") }
-
-                val launcher = rememberLauncherForActivityResult(
-                    contract = ActivityResultContracts.GetContent()
-                ) { uri: Uri? ->
-                    uri?.let {
-                        storageViewModel.uploadMedia(it, "images"){
-                            userImage = it.toString()
-                        }
-                    }
-                }
-
-                Box(modifier = Modifier.clickable {
-                    launcher.launch("image/*")
+    Scaffold(
+        topBar = {
+            TopAppBar(navigationIcon = {
+                IconButton(onClick = {
+                    navController.popBackStack()
                 }) {
-                    Image(
-                        modifier = Modifier
-                            .size(200.dp)
-                            .clip(CircleShape),
-                        painter = rememberImagePainter(
-                            data = userImage
-                        ),
-                        contentDescription = ""
-                    )
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "",
-                        modifier = Modifier
-                            .size(30.dp)
-                            .align(
-                                Alignment.BottomEnd
-                            )
-                    )
+                    Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "")
                 }
-
-                Spacer(modifier = Modifier.size(20.dp))
-
-                TextField(
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            focus.clearFocus()
-                        }
-                    ),
-                    trailingIcon = {
-                        if (usernameTfError)
-                            Icon(
-                                Icons.Filled.Warning,
-                                "error",
-                                tint = colorResource(id = R.color.red)
-                            )
-                    },
-                    singleLine = true,
-                    maxLines = 1,
-                    placeholder = { Text(text = "Username") },
-                    colors = TextFieldDefaults.textFieldColors(
-                        unfocusedIndicatorColor = if (usernameTfError) colorResource(id = R.color.red) else Color.Gray,
-                        containerColor = Color.Transparent,
-                        focusedIndicatorColor = colorResource(id = R.color.blue),
-                    ),
-                    value = usernameTf,
-                    onValueChange = { usernameTf = it },
-
+            }, title = { Text(text = "${userData?.username}", fontWeight = FontWeight.Bold) })
+        },
+        content = {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(it),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                ProfileItems(icon = Icons.Default.Settings, text = "Account", onClick = {
+                    navigateTo(
+                        navController,
+                        "account",
+                        NavParam("userData", userData ?: UserData())
                     )
-
-                Spacer(modifier = Modifier.size(30.dp))
-
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorResource(id = R.color.blue)
-                    ),
-                    onClick = {
-                        focus.clearFocus()
-                        usernameTfError = usernameTf.isEmpty()
-                        if (usernameTf.isNotEmpty()) {
-                            userViewModel.updateUser(
-                                userData = userData.copy(
-                                    username = usernameTf.trim().replace(" ", ""),
-                                    image = userImage
-                                )
-                            )
-                            navController.navigate("main") {
-                                popUpTo(0)
-                            }
-                        }
-
-                    }) {
-                    Text(text = "Save", color = Color.White)
-                }
-                Spacer(modifier = Modifier.size(80.dp))
-                Button(
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorResource(id = R.color.red)
-                    ),
-                    onClick = {
-                        focus.clearFocus()
-                        authViewModel.signOut()
-                        navController.navigate("auth") {
-                            popUpTo(0)
-                        }
-
-                    }) {
-                    Text(text = "Sign Out", color = Color.White)
-                }
+                })
+                ProfileItems(icon = Icons.Default.Info, text = "About application", onClick = {
+                    uriHandler.openUri("https://github.com/zaurh/cotam")
+                })
             }
         }
-    }
-    if (isMediaLoading) {
-        MyProgressBar()
+    )
+}
+
+
+@Composable
+fun ProfileItems(
+    icon: ImageVector,
+    text: String,
+    textColor: Color = Color.Black,
+    onClick: () -> Unit
+) {
+    Surface(
+        Modifier
+            .fillMaxWidth()
+            .clickable {
+                onClick()
+            }
+    ) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row {
+                Icon(imageVector = icon, contentDescription = "", tint = textColor)
+                Spacer(modifier = Modifier.size(10.dp))
+                Text(
+                    text = text, color = textColor
+                )
+            }
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowRight,
+                contentDescription = "",
+                tint = textColor
+            )
+        }
+
     }
 }

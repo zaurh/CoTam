@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.Patterns
 import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
-import com.example.cotam.data.UserData
+import com.example.cotam.data.remote.UserData
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

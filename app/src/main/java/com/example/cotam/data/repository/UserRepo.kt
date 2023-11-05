@@ -1,14 +1,13 @@
 package com.example.cotam.data.repository
 
-import android.net.Uri
 import androidx.compose.runtime.mutableStateOf
-import com.example.cotam.data.UserData
+import com.example.cotam.data.remote.UserData
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.firestore.ktx.toObjects
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.storage.FirebaseStorage
-import java.util.UUID
 import javax.inject.Inject
 
 class UserRepo @Inject constructor(
@@ -23,11 +22,14 @@ class UserRepo @Inject constructor(
     val usersData = mutableStateOf<List<UserData>>(emptyList())
     val currentUserId = auth.currentUser?.uid
 
+
+
     init {
         getAllUsers()
         auth.currentUser?.uid?.let {
             getUserData(it)
         }
+
     }
 
     fun addUser(userData: UserData) {
@@ -69,6 +71,7 @@ class UserRepo @Inject constructor(
             firestore.collection("user").document(currentUserId).update(userData.toMap())
                 .addOnSuccessListener {
                     this.userData.value = userData
+
                 }
 
             firestore.collection("message")
@@ -79,6 +82,7 @@ class UserRepo @Inject constructor(
                         document.reference.update("senderUsername", userData.username)
                     }
                 }
+
         }
     }
 

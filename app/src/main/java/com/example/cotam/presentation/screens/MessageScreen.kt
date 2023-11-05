@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.net.Uri
 import android.util.Log
 import android.webkit.URLUtil
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
@@ -25,6 +26,7 @@ import androidx.compose.material.*
 import androidx.compose.material3.Button
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Reply
 import androidx.compose.material.icons.filled.Send
@@ -44,6 +46,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,6 +59,7 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -67,10 +71,12 @@ import com.example.cotam.R
 import com.example.cotam.common.Constants.messagingUsernameNotification
 import com.example.cotam.common.VideoPlayer
 import com.example.cotam.common.ZoomableImg
-import com.example.cotam.data.MessageData
-import com.example.cotam.data.UserData
+import com.example.cotam.data.remote.MessageData
+import com.example.cotam.data.remote.UserData
+import com.example.cotam.data.toUserEntity
 import com.example.cotam.presentation.components.MessageItem
 import com.example.cotam.presentation.screens.viewmodel.MessageViewModel
+import com.example.cotam.presentation.screens.viewmodel.RoomViewModel
 import com.example.cotam.presentation.screens.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 
@@ -82,7 +88,8 @@ fun MessageScreen(
     userData: UserData,
     navController: NavController,
     messageViewModel: MessageViewModel = hiltViewModel(),
-    userViewModel: UserViewModel = hiltViewModel()
+    userViewModel: UserViewModel = hiltViewModel(),
+    roomViewModel: RoomViewModel = hiltViewModel()
 ) {
 
     messagingUsernameNotification = userData.username ?: ""
@@ -96,6 +103,7 @@ fun MessageScreen(
     var replyVideo = messageViewModel.replyingVideo.value
     val senderUserData = userViewModel.userData.value
 
+    val roomUsers = roomViewModel.userData.observeAsState(listOf())
 
     val selectedMessages = messageViewModel.selectedMessages
 
@@ -263,7 +271,9 @@ fun MessageScreen(
                                     .clip(CircleShape)
                                     .size(35.dp)
                                     .clickable {
-                                        dialogState = true
+                                        if (userData.image != null){
+                                            dialogState = true
+                                        }
                                     },
                                 painter = rememberImagePainter(
                                     data = userData.image ?: "https://shorturl.at/jmoHM"
@@ -303,24 +313,23 @@ fun MessageScreen(
                             }) {
                                 Icon(imageVector = Icons.Default.Reply, contentDescription = "")
                             }
-
                             for (i in selectedMessages) {
-//                                if (i.imageUrl == "" && i.videoUrl == "") {
-//                                    IconButton(onClick = {
-//                                        clipboardManager.setText(AnnotatedString((i.message ?: "")))
-//                                        Toast.makeText(
-//                                            context,
-//                                            "Message copied",
-//                                            Toast.LENGTH_SHORT
-//                                        ).show()
-//                                        selectedMessages.removeAll(messages)
-//                                    }) {
-//                                        Icon(
-//                                            imageVector = Icons.Default.ContentCopy,
-//                                            contentDescription = ""
-//                                        )
-//                                    }
-//                                }
+                                if (i.imageUrl == null && i.videoUrl == null) {
+                                    IconButton(onClick = {
+                                        clipboardManager.setText(AnnotatedString((i.message ?: "")))
+                                        Toast.makeText(
+                                            context,
+                                            "Message copied",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        selectedMessages.removeAll(messages)
+                                    }) {
+                                        Icon(
+                                            imageVector = Icons.Default.ContentCopy,
+                                            contentDescription = ""
+                                        )
+                                    }
+                                }
                             }
                         }
                         IconButton(onClick = {
@@ -341,6 +350,7 @@ fun MessageScreen(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+
 
                 LazyColumn(state = scrollState, modifier = Modifier.weight(6f)) {
                     items(messages.takeLast(30)) {
@@ -470,6 +480,17 @@ fun MessageScreen(
                                 )
                             }
                             IconButton(onClick = {
+                                if (roomUsers.value.map { it.userId }.contains(userData.userId)){
+                                    roomViewModel.deleteUserById(userData.userId!!)
+                                    roomViewModel.addUser(
+                                        userEntity = userData.toUserEntity()
+                                    )
+                                }else{
+                                    roomViewModel.addUser(
+                                        userEntity = userData.toUserEntity()
+                                    )
+                                }
+
                                 if (messageTf.trim().isNotEmpty()) {
                                     scope.launch {
                                         if (messages.isNotEmpty()) {

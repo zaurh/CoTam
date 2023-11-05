@@ -5,8 +5,7 @@ import android.net.Uri
 import androidx.compose.runtime.mutableStateOf
 import com.example.cotam.common.isImageFile
 import com.example.cotam.common.isVideoFile
-import com.example.cotam.data.MessageData
-import com.example.cotam.data.UserData
+import com.example.cotam.data.remote.MessageData
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.toObjects
 import kotlinx.coroutines.flow.StateFlow

@@ -10,11 +10,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.cotam.common.Constants.TOPIC
-import com.example.cotam.data.UserData
+import com.example.cotam.data.remote.UserData
+import com.example.cotam.presentation.screens.AccountScreen
 import com.example.cotam.presentation.screens.MainScreen
 import com.example.cotam.presentation.screens.MessageScreen
 import com.example.cotam.presentation.screens.PeopleScreen
@@ -24,6 +26,11 @@ import com.example.cotam.presentation.screens.auth.AuthScreen
 import com.example.cotam.presentation.screens.auth.ForgotPasswordScreen
 import com.example.cotam.presentation.screens.auth.SignInScreen
 import com.example.cotam.presentation.screens.auth.SignUpScreen
+import com.example.cotam.presentation.screens.viewmodel.AuthViewModel
+import com.example.cotam.presentation.screens.viewmodel.MessageViewModel
+import com.example.cotam.presentation.screens.viewmodel.RoomViewModel
+import com.example.cotam.presentation.screens.viewmodel.StorageViewModel
+import com.example.cotam.presentation.screens.viewmodel.UserViewModel
 import com.example.cotam.ui.theme.CoTamTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.firebase.messaging.FirebaseMessaging
@@ -56,10 +63,20 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun Navig() {
     val navController = rememberNavController()
+    val userViewModel = viewModel<UserViewModel>()
+    val authViewModel = viewModel<AuthViewModel>()
+    val roomViewModel = viewModel<RoomViewModel>()
+    val messageViewModel = viewModel<MessageViewModel>()
+    val storageViewModel = viewModel<StorageViewModel>()
+
     NavHost(navController = navController, startDestination = "splash_screen") {
 
         composable("main") {
-            MainScreen(navController = navController)
+            MainScreen(
+                navController = navController,
+                roomViewModel = roomViewModel,
+                userViewModel = userViewModel
+            )
         }
         composable("message") {
 
@@ -83,7 +100,24 @@ fun Navig() {
             SignUpScreen(navController)
         }
         composable("settings") {
-            SettingsScreen(navController)
+            SettingsScreen(
+                navController = navController,
+                authViewModel = authViewModel,
+                userViewModel = userViewModel
+            )
+        }
+        composable("account") {
+            val userData = navController.previousBackStackEntry?.arguments?.getParcelable<UserData>("userData")
+
+            userData?.let {
+                AccountScreen(
+                    navController = navController,
+                    userData = it,
+                    userViewModel = userViewModel,
+                    authViewModel = authViewModel,
+                    storageViewModel = storageViewModel
+                )
+            }
         }
         composable("people") {
             PeopleScreen(navController)
@@ -99,9 +133,6 @@ fun Navig() {
         }
 
     }
-
-
-
 
 
 }

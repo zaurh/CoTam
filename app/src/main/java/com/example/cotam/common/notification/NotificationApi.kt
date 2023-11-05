@@ -2,7 +2,7 @@ package com.example.cotam.common.notification
 
 import com.example.cotam.common.Constants.CONTENT_TYPE
 import com.example.cotam.common.Constants.SERVER_KEY
-import com.example.cotam.data.PushNotification
+import com.example.cotam.data.remote.PushNotification
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body

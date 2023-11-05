@@ -33,7 +33,7 @@ import com.example.cotam.common.VideoPlayer
 import com.example.cotam.common.ZoomableImg
 import com.example.cotam.common.myTime
 import com.example.cotam.common.navigateTo
-import com.example.cotam.data.UserData
+import com.example.cotam.data.remote.UserData
 import com.example.cotam.presentation.screens.viewmodel.MessageViewModel
 import com.example.cotam.presentation.screens.viewmodel.UserViewModel
 import com.google.firebase.auth.FirebaseAuth

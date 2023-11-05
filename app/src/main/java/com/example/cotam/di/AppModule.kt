@@ -1,8 +1,12 @@
 package com.example.cotam.di
 
+import android.app.Application
+import androidx.room.Room
 import com.example.cotam.common.Constants.BASE_URL
 import com.example.cotam.common.notification.NotificationApi
+import com.example.cotam.data.local.UserDatabase
 import com.example.cotam.data.repository.NotificationRepository
+import com.example.cotam.data.repository.RoomRepo
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -47,9 +51,10 @@ object AppModule {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
+
     @Singleton
     @Provides
-    fun provideRetrofitApi(retrofit: Retrofit): NotificationApi{
+    fun provideRetrofitApi(retrofit: Retrofit): NotificationApi {
         return retrofit.create(NotificationApi::class.java)
     }
 
@@ -57,4 +62,22 @@ object AppModule {
     @Provides
     fun provideRepository(api: NotificationApi) = NotificationRepository(api)
 
+    //Room
+    @Singleton
+    @Provides
+    fun provideRoomDatabase(app: Application): UserDatabase {
+        return Room.databaseBuilder(
+            app,
+            UserDatabase::class.java,
+            "cotam_db"
+        ).fallbackToDestructiveMigration().build()
+    }
+
+    @Singleton
+    @Provides
+    fun provideRoomRepository(db: UserDatabase) = RoomRepo(db.userDao())
+
 }
+
+
+
