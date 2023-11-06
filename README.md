@@ -1,4 +1,4 @@
-CoTam is a messenger app where you can chat with your friends and send them pictures. I've used several Firebase libraries like Auth (for authentication users) Firestore (for storing user and message data) Storage (for uploading profile picture and sending image). 
+CoTam is a messenger app where you can chat with your friends and send them pictures. I've used several Firebase libraries like Auth (for authentication users) Firestore (for storing user and message data) Storage (for uploading profile picture, sending images and videos). 
 
 
 # Preview
@@ -20,7 +20,7 @@ Firebase Auth (for authentication users)
 
 Firebase Firestore (for storing user and message data)
 
-Firebase Storage (for uploading images)
+Firebase Storage (for uploading images and videos.)
 
 Coil (for loading images asynchronous)
 
