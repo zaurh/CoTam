@@ -3,7 +3,7 @@ CoTam is a messenger app where you can chat with your friends and send them pict
 
 # Preview
 
-![App Screenshot](https://i.hizliresim.com/quxud8n.png)
+![App Screenshot](https://i.hizliresim.com/5n56wak.png)
 
 
 
