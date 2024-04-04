@@ -16,17 +16,25 @@ Jetpack compose
 
 MVVM
 
-Firebase Auth (for authentication users)
+Firebase Auth (Authenticating users)
 
-Firebase Firestore (for storing user and message data)
+Firebase Firestore (Storing user and message data)
 
-Firebase Storage (for uploading images and videos.)
+Firebase Storage (Uploading images and videos.)
 
-Coil (for loading images asynchronous)
+Firebase FCM & Retrofit (Sending notification)
 
-Navigation (for navigating between composables)
+Coil (Loading images asynchronous)
 
-Dagger Hilt (for dependency injection)
+Navigation (Navigating between composables with animation)
+
+Dagger Hilt (Dependency injection)
+
+Preferences Datastore (Saving dark theme)
+
+Room (Saving users to local database)
+
+ExoPlayer (Playing videos)
 
 
 
