@@ -8,11 +8,11 @@ plugins {
 }
 
 android {
-    namespace 'com.example.cotam'
+    namespace 'com.zaurh.cotam'
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.example.cotam"
+        applicationId "com.zaurh.cotam"
         minSdk 24
         targetSdk 33
         versionCode 1
@@ -96,18 +96,8 @@ dependencies {
     implementation 'androidx.hilt:hilt-navigation-compose:1.0.0'
 
 
-    //ViewPager
-    implementation("com.google.accompanist:accompanist-pager:0.17.0")
-    implementation("com.google.accompanist:accompanist-pager-indicators:0.17.0")
-
-    //AnimatedNavigation
-    implementation "com.google.accompanist:accompanist-navigation-animation:0.24.13-rc"
-
     //Swipe Refresh
     implementation "com.google.accompanist:accompanist-swiperefresh:0.24.2-alpha"
-
-    //More Icons
-    implementation "androidx.compose.material:material-icons-extended:1.1.3"
 
     // Permissions
     implementation "com.google.accompanist:accompanist-permissions:0.28.0"
@@ -131,4 +121,13 @@ dependencies {
     //Room
     implementation 'androidx.room:room-ktx:2.2.1'
     kapt "androidx.room:room-compiler:2.2.1"
+
+    //Preferences datastore
+    implementation "androidx.datastore:datastore-preferences:1.0.0"
+
+    //image cropper
+    implementation("com.vanniktech:android-image-cropper:4.5.0")
+
+    //Animated Navigation
+    implementation "com.google.accompanist:accompanist-navigation-animation:0.24.13-rc"
 }

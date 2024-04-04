@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:17621947036:android:5d1865284060739cc99359",
         "android_client_info": {
-          "package_name": "com.example.cotam"
+          "package_name": "com.zaurh.cotam"
         }
       },
       "oauth_client": [
@@ -17,7 +17,7 @@
           "client_id": "17621947036-k375b3fd19i3l1ap4tcl93bamv49i3at.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.cotam",
+            "package_name": "com.zaurh.cotam",
             "certificate_hash": "0c3d7e3437d3c3e87f044005179c556d3e1bc13c"
           }
         },
