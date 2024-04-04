@@ -7,7 +7,8 @@ CoTam is a messenger app where you can chat with your friends and send them pict
 
 
 
-https://github.com/zaurh/CoTam/assets/56722725/8ab38c13-f054-46c2-b17c-fd357c5c804a
+https://github.com/zaurh/CoTam/assets/56722725/588cee52-2d1e-4ab0-8c27-02a9d6d1ed99
+
 
 
 
